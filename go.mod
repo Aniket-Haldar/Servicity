@@ -3,8 +3,6 @@ module github.com/Aniket-Haldar/Servicity
 go 1.24.3
 
 require (
-	github.com/Valgard/go-pcre v0.0.0-20200510215507-235e400e25e9 // indirect
-	github.com/Valgard/godotenv v0.0.0-20200511222744-8873b92a09c5 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/gofiber/fiber/v2 v2.52.6 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
@@ -29,4 +27,5 @@ require (
 	golang.org/x/text v0.25.0 // indirect
 	gorm.io/driver/postgres v1.5.11 // indirect
 	gorm.io/gorm v1.26.1 // indirect
+	github.com/joho/godotenv v1.5.1
 )

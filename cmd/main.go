@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Valgard/godotenv"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
