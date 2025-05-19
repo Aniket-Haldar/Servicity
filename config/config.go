@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// this is to load the environmental variables from .env file
 type DBConfig struct {
 	Host     string
 	Port     string
