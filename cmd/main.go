@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/Aniket-Haldar/Servicity/config"
+	"github.com/Aniket-Haldar/Servicity/middleware"
 	"github.com/Aniket-Haldar/Servicity/models"
 	"github.com/Aniket-Haldar/Servicity/routes"
 	"github.com/gofiber/fiber/v2"
@@ -14,37 +15,38 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Failed to load .env")
+		log.Fatal("Error loading .env file")
 	}
-
 	config.SetupOAuthConfig()
-
+	// Connect to DB
 	db, err := config.DBConnect()
 	if err != nil {
-		fmt.Println("DB connection failed:", err)
-		return
+		log.Fatal("DB connection failed: ", err)
 	}
+	fmt.Println("DB connected!")
 
-	err = db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&models.User{},
 		&models.ProviderProfile{},
 		&models.CustomerProfile{},
 		&models.Service{},
 		&models.Booking{},
 		&models.Review{},
-	)
-	if err != nil {
-		fmt.Println("Migration error:", err)
-		return
+	); err != nil {
+		log.Fatal("AutoMigrate failed: ", err)
 	}
 
-	fmt.Println("Migration successful")
 	app := fiber.New()
 
 	routes.SetupRoutes(app, db)
 
-	err = app.Listen(":3000")
-	if err != nil {
-		log.Fatal("Server failed to start:", err)
-	}
+	app.Get("/secure", middleware.RequireAuth, func(c *fiber.Ctx) error {
+		email := c.Locals("userEmail").(string)
+		return c.JSON(fiber.Map{
+			"message": "You are authenticated!",
+			"email":   email,
+		})
+	})
+
+	log.Fatal(app.Listen(":3000"))
 }

@@ -14,11 +14,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// this diverts to the login page
 func GoogleLogin(c *fiber.Ctx) error {
 	url := config.GoogleOAuthConfig.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	return c.Redirect(url)
 }
 
+// this diverts to callback after login is done, done using documentation using recipes of fibre
 func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	code := c.Query("code")
 	if code == "" {
