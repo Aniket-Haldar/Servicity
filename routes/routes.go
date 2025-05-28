@@ -8,7 +8,13 @@ import (
 )
 
 func SetupRoutes(app *fiber.App, db *gorm.DB) {
+	service := app.Group("/services")
 
+	service.Post("/", controllers.CreateService(db))
+	service.Get("/", controllers.GetServices(db))
+	service.Get("/:id", controllers.GetService(db))
+	service.Put("/:id", controllers.UpdateService(db))
+	service.Delete("/:id", controllers.DeleteService(db))
 	auth := app.Group("/auth")
 	auth.Get("/google/login", controllers.GoogleLogin)
 	auth.Get("/google/callback", func(c *fiber.Ctx) error {
