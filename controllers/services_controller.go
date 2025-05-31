@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// post method for service
 func CreateService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var Service models.Service
@@ -20,6 +21,8 @@ func CreateService(db *gorm.DB) fiber.Handler {
 		return c.JSON(Service)
 	}
 }
+
+// look for all services
 func GetServices(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		Services := []models.Service{}
@@ -29,6 +32,8 @@ func GetServices(db *gorm.DB) fiber.Handler {
 		return c.JSON(Services)
 	}
 }
+
+// function to find the service
 func FindService(db *gorm.DB, id int, service *models.Service) error {
 	if id == 0 {
 		return errors.New("ID must not be zero")
@@ -39,6 +44,7 @@ func FindService(db *gorm.DB, id int, service *models.Service) error {
 	return nil
 }
 
+// method to look up a specific service
 func GetService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -58,6 +64,7 @@ func GetService(db *gorm.DB) fiber.Handler {
 	}
 }
 
+// update service by PUT
 func UpdateService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
@@ -86,6 +93,8 @@ func UpdateService(db *gorm.DB) fiber.Handler {
 		return c.JSON(service)
 	}
 }
+
+// delete service by DELETE
 func DeleteService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 

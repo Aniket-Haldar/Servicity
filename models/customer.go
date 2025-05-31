@@ -8,5 +8,5 @@ type CustomerProfile struct {
 	gorm.Model
 	UserID  uint
 	Address string
-	History string
+	Phone   string
 }

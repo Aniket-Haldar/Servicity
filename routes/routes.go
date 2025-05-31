@@ -2,12 +2,18 @@ package routes
 
 import (
 	"github.com/Aniket-Haldar/Servicity/controllers"
+	"github.com/Aniket-Haldar/Servicity/middleware"
 	"github.com/Aniket-Haldar/Servicity/utils"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 func SetupRoutes(app *fiber.App, db *gorm.DB) {
+
+	profile := app.Group("/profile")
+	profile.Post("/update", middleware.RequireAuth, controllers.UpdateProfile(db))
+	profile.Get("/details", middleware.RequireAuth, controllers.GetProfile(db))
+
 	service := app.Group("/services")
 
 	service.Post("/", controllers.CreateService(db))

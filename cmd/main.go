@@ -35,18 +35,11 @@ func main() {
 	); err != nil {
 		log.Fatal("AutoMigrate failed: ", err)
 	}
+	middleware.SetDatabase(db)
 
 	app := fiber.New()
 
 	routes.SetupRoutes(app, db)
-
-	app.Get("/secure", middleware.RequireAuth, func(c *fiber.Ctx) error {
-		email := c.Locals("userEmail").(string)
-		return c.JSON(fiber.Map{
-			"message": "You are authenticated!",
-			"email":   email,
-		})
-	})
 
 	log.Fatal(app.Listen(":3000"))
 }

@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// post method for booking
 func CreateBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var Booking models.Booking
@@ -20,6 +21,8 @@ func CreateBooking(db *gorm.DB) fiber.Handler {
 		return c.JSON(Booking)
 	}
 }
+
+// get method for booking
 func GetBookings(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		Bookings := []models.Booking{}
@@ -29,7 +32,9 @@ func GetBookings(db *gorm.DB) fiber.Handler {
 		return c.JSON(Bookings)
 	}
 }
-func Findbooking(db *gorm.DB, id int, booking *models.Booking) error {
+
+// function to find id
+func FindBooking(db *gorm.DB, id int, booking *models.Booking) error {
 	if id == 0 {
 		return errors.New("ID must not be zero")
 	}
@@ -39,6 +44,7 @@ func Findbooking(db *gorm.DB, id int, booking *models.Booking) error {
 	return nil
 }
 
+// to find by specific id
 func GetBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -47,7 +53,7 @@ func GetBooking(db *gorm.DB) fiber.Handler {
 		}
 
 		var booking models.Booking
-		if err := Findbooking(db, id, &booking); err != nil {
+		if err := FindBooking(db, id, &booking); err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return c.Status(404).JSON(fiber.Map{"error": "booking not found"})
 			}
@@ -58,6 +64,7 @@ func GetBooking(db *gorm.DB) fiber.Handler {
 	}
 }
 
+// update by PUT method
 func UpdateBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
@@ -86,6 +93,8 @@ func UpdateBooking(db *gorm.DB) fiber.Handler {
 		return c.JSON(booking)
 	}
 }
+
+// delete by DELETE method
 func DeleteBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
