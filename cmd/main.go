@@ -9,6 +9,7 @@ import (
 	"github.com/Aniket-Haldar/Servicity/models"
 	"github.com/Aniket-Haldar/Servicity/routes"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -38,6 +39,12 @@ func main() {
 	middleware.SetDatabase(db)
 
 	app := fiber.New()
+	//cors error showing
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://127.0.0.1:5500, http://localhost:3000, http://localhost:5500",
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	routes.SetupRoutes(app, db)
 

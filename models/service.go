@@ -1,12 +1,12 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 type Service struct {
 	gorm.Model
 	Name        string
-	Category    string
 	Description string
+	Price       float64
+	Category    string
+	ImageURL    string `json:"image_url"`
 }

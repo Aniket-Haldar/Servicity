@@ -8,32 +8,54 @@ import (
 	"gorm.io/gorm"
 )
 
-// post method for service
 func CreateService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var Service models.Service
-		if err := c.BodyParser(&Service); err != nil {
-			return c.Status(400).JSON(err.Error())
+		var service models.Service
+		if err := c.BodyParser(&service); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
-		if err := db.Create(&Service).Error; err != nil {
+		if err := db.Create(&service).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.JSON(Service)
+		return c.JSON(fiber.Map{
+			"id":          service.ID,
+			"name":        service.Name,
+			"description": service.Description,
+			"category":    service.Category,
+		})
 	}
 }
 
-// look for all services
 func GetServices(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		Services := []models.Service{}
-		if err := db.Find(&Services).Error; err != nil {
+		var services []models.Service
+		if err := db.Find(&services).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.JSON(Services)
+
+		// Create response without fields that might not exist
+		var response []fiber.Map
+		for _, s := range services {
+			item := fiber.Map{
+				"id":          s.ID,
+				"name":        s.Name,
+				"description": s.Description,
+				"category":    s.Category,
+			}
+			// Only add price if it exists in model
+			if s.Price != 0 {
+				item["price"] = s.Price
+			}
+			// Only add image_url if it exists in model
+			if s.ImageURL != "" {
+				item["image_url"] = s.ImageURL
+			}
+			response = append(response, item)
+		}
+		return c.JSON(response)
 	}
 }
 
-// function to find the service
 func FindService(db *gorm.DB, id int, service *models.Service) error {
 	if id == 0 {
 		return errors.New("ID must not be zero")
@@ -44,7 +66,6 @@ func FindService(db *gorm.DB, id int, service *models.Service) error {
 	return nil
 }
 
-// method to look up a specific service
 func GetService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -60,14 +81,24 @@ func GetService(db *gorm.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		return c.JSON(service)
+		response := fiber.Map{
+			"id":          service.ID,
+			"name":        service.Name,
+			"description": service.Description,
+			"category":    service.Category,
+		}
+		if service.Price != 0 {
+			response["price"] = service.Price
+		}
+		if service.ImageURL != "" {
+			response["image_url"] = service.ImageURL
+		}
+		return c.JSON(response)
 	}
 }
 
-// update service by PUT
 func UpdateService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
 		id, err := c.ParamsInt("id")
 		if err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "ID must be an integer"})
@@ -94,10 +125,8 @@ func UpdateService(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// delete service by DELETE
 func DeleteService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
 		id, err := c.ParamsInt("id")
 		if err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "ID must be an integer"})
@@ -113,6 +142,6 @@ func DeleteService(db *gorm.DB) fiber.Handler {
 		if err := db.Delete(&service).Error; err != nil {
 			return c.Status(404).JSON(fiber.Map{"error": "Service not found"})
 		}
-		return c.Status(200).SendString("Succesfully Deleted")
+		return c.Status(200).SendString("Successfully Deleted")
 	}
 }

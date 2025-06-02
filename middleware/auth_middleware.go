@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB // Inject this from main.go
+var DB *gorm.DB
 
 func SetDatabase(db *gorm.DB) {
 	DB = db
@@ -23,7 +23,6 @@ func RequireAuth(c *fiber.Ctx) error {
 		})
 	}
 
-	// Expect format: Bearer <token>
 	splitToken := strings.Split(authHeader, " ")
 	if len(splitToken) != 2 || strings.ToLower(splitToken[0]) != "bearer" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -39,7 +38,6 @@ func RequireAuth(c *fiber.Ctx) error {
 		})
 	}
 
-	// Fetch user and store userID in context
 	var user models.User
 	if err := DB.Where("email = ?", email).First(&user).Error; err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
