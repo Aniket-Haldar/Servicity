@@ -1,6 +1,6 @@
 // Mobile Navigation Toggle
-document.querySelector('.hamburger').addEventListener('click', function() {
-    document.querySelector('.nav-links').classList.toggle('active');
+document.querySelector('.hamburger')?.addEventListener('click', function() {
+    document.querySelector('.nav-links')?.classList.toggle('active');
 });
 
 // Smooth Scrolling for Anchor Links
@@ -19,7 +19,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             });
             
             // Close mobile menu if open
-            document.querySelector('.nav-links').classList.remove('active');
+            document.querySelector('.nav-links')?.classList.remove('active');
         }
     });
 });
@@ -27,55 +27,30 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Sticky Navigation on Scroll
 window.addEventListener('scroll', function() {
     const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-        navbar.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-    } else {
-        navbar.style.boxShadow = 'none';
+    if (navbar) {
+        navbar.style.boxShadow = window.scrollY > 50 
+            ? '0 4px 12px rgba(0, 0, 0, 0.1)' 
+            : 'none';
     }
 });
 
-// Testimonial Carousel (would be enhanced with a proper library like Swiper in production)
-let currentTestimonial = 0;
-const testimonials = document.querySelectorAll('.testimonial-card');
-
-function showTestimonial(index) {
-    testimonials.forEach((testimonial, i) => {
-        testimonial.style.display = i === index ? 'block' : 'none';
-    });
-}
-
-// Initialize
-showTestimonial(0);
-
-// Service Card Animation
-const serviceCards = document.querySelectorAll('.service-card');
-serviceCards.forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-5px)';
-        this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = '';
-        this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-    });
-});
 // API Configuration
-const API_BASE_URL = 'http://localhost:3000'; // Update with your backend URL
+const API_BASE_URL = 'http://localhost:3000';
+let isAdmin = false; // This should be set based on user role after login
 
 // DOM Elements
 const servicesContainer = document.getElementById('services-container');
-const serviceModal = document.getElementById('service-modal');
-const serviceForm = document.getElementById('service-form');
-const closeBtn = document.querySelector('.close-btn');
-const profileIcon = document.getElementById('profile-icon');
 const searchInput = document.getElementById('service-search');
 const searchBtn = document.getElementById('search-btn');
 
-// Check if user is admin (you'll need to implement this properly)
-let isAdmin = false;
+// Cookie Helper
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
 
-// Fetch and Display Services
+// Fetch and Display Services (No Authorization Needed)
 async function fetchAndDisplayServices(searchQuery = '') {
     try {
         // Show loading state
@@ -87,12 +62,8 @@ async function fetchAndDisplayServices(searchQuery = '') {
         `;
 
         // Build URL with optional search query
-        let url = `${API_BASE_URL}/services`;
-        if (searchQuery) {
-            url += `?search=${encodeURIComponent(searchQuery)}`;
-        }
+        const url = `${API_BASE_URL}/services${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`;
 
-        // Fetch services
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -113,43 +84,9 @@ async function fetchAndDisplayServices(searchQuery = '') {
             return;
         }
 
-        // Render services dynamically
-        services.forEach(service => {
-            const serviceCard = document.createElement('div');
-            serviceCard.className = 'service-card';
-            serviceCard.innerHTML = `
-                <div class="service-img" style="background-image: url('${service.image_url || '../images/default-service.jpeg'}');"></div>
-                <div class="service-info">
-                    <h3>${service.name}</h3>
-                    ${service.description ? `<p class="service-description">${service.description}</p>` : ''}
-                    ${service.price ? `<p class="service-price">From ₹${service.price}</p>` : ''}
-                    <button class="btn btn-outline book-btn" data-service-id="${service.id}">Book Now</button>
-                    ${isAdmin ? `<button class="btn btn-danger delete-btn" data-service-id="${service.id}">Delete</button>` : ''}
-                </div>
-            `;
-            servicesContainer.appendChild(serviceCard);
-        });
-
-        // Add event listeners
-        document.querySelectorAll('.book-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const serviceId = this.getAttribute('data-service-id');
-                bookService(serviceId);
-            });
-        });
-
-        if (isAdmin) {
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', async function() {
-                    const serviceId = this.getAttribute('data-service-id');
-                    if (confirm('Are you sure you want to delete this service?')) {
-                        await deleteService(serviceId);
-                        fetchAndDisplayServices();
-                    }
-                });
-            });
-        }
-
+        // Render services
+        renderServices(services);
+        
     } catch (error) {
         console.error('Error fetching services:', error);
         servicesContainer.innerHTML = `
@@ -158,20 +95,64 @@ async function fetchAndDisplayServices(searchQuery = '') {
                 <button class="btn btn-outline" id="retry-btn">Retry</button>
             </div>
         `;
-
-        document.getElementById('retry-btn').addEventListener('click', () => fetchAndDisplayServices());
+        document.getElementById('retry-btn')?.addEventListener('click', () => fetchAndDisplayServices());
     }
 }
 
-// Book Service
-async function bookService(serviceId) {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/login?redirect=booking';
-            return;
-        }
+// Render Services to DOM
+function renderServices(services) {
+    services.forEach(service => {
+        const serviceCard = document.createElement('div');
+        serviceCard.className = 'service-card';
+        serviceCard.innerHTML = `
+            <div class="service-img" style="background-image: url('${service.image_url || '../images/default-service.jpeg'}');"></div>
+            <div class="service-info">
+                <h3>${service.name}</h3>
+                ${service.description ? `<p class="service-description">${service.description}</p>` : ''}
+                ${service.price ? `<p class="service-price">From ₹${service.price}</p>` : ''}
+                <button class="btn btn-outline book-btn" data-service-id="${service.id}">Book Now</button>
+                ${isAdmin ? `<button class="btn btn-danger delete-btn" data-service-id="${service.id}">Delete</button>` : ''}
+            </div>
+        `;
+        servicesContainer.appendChild(serviceCard);
+    });
 
+    // Add event listeners to interactive elements
+    setupServiceInteractions();
+}
+
+// Setup Event Listeners for Service Actions
+function setupServiceInteractions() {
+    // Book Service
+    document.querySelectorAll('.book-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const serviceId = this.getAttribute('data-service-id');
+            bookService(serviceId);
+        });
+    });
+
+    // Delete Service (Admin only)
+    if (isAdmin) {
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const serviceId = this.getAttribute('data-service-id');
+                if (confirm('Are you sure you want to delete this service?')) {
+                    deleteService(serviceId);
+                }
+            });
+        });
+    }
+}
+
+// Book Service (Requires Authorization)
+async function bookService(serviceId) {
+    const token = localStorage.getItem('token') || getCookie('token');
+    if (!token) {
+        window.location.href = '/login?redirect=booking';
+        return;
+    }
+
+    try {
         const response = await fetch(`${API_BASE_URL}/bookings`, {
             method: 'POST',
             headers: {
@@ -197,15 +178,15 @@ async function bookService(serviceId) {
     }
 }
 
-// Delete Service (Admin only)
+// Delete Service (Admin Only)
 async function deleteService(serviceId) {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
+    const token = localStorage.getItem('token') || getCookie('token');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
 
+    try {
         const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
             method: 'DELETE',
             headers: {
@@ -218,6 +199,7 @@ async function deleteService(serviceId) {
         }
 
         alert('Service deleted successfully');
+        fetchAndDisplayServices(); // Refresh the list
         
     } catch (error) {
         console.error('Delete failed:', error);
@@ -225,186 +207,91 @@ async function deleteService(serviceId) {
     }
 }
 
-// Handle Image Upload Preview
-document.getElementById('service-image').addEventListener('change', function(e) {
-    const preview = document.getElementById('image-preview');
-    preview.innerHTML = '';
-    
-    if (e.target.files.length > 0) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = function(event) {
-            const img = document.createElement('img');
-            img.src = event.target.result;
-            preview.appendChild(img);
-        }
-        
-        reader.readAsDataURL(file);
-    }
-});
-
-// Handle Service Form Submission
-serviceForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData();
-    formData.append('name', document.getElementById('service-name').value);
-    formData.append('description', document.getElementById('service-description').value);
-    formData.append('price', document.getElementById('service-price').value);
-    formData.append('category', document.getElementById('service-category').value);
-    
-    const imageInput = document.getElementById('service-image');
-    if (imageInput.files.length > 0) {
-        formData.append('image', imageInput.files[0]);
-    }
-
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
-        const response = await fetch(`${API_BASE_URL}/services`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error('Service creation failed');
-        }
-
-        const data = await response.json();
-        alert('Service created successfully!');
-        serviceModal.style.display = 'none';
-        serviceForm.reset();
-        document.getElementById('image-preview').innerHTML = '';
-        fetchAndDisplayServices();
-        
-    } catch (error) {
-        console.error('Error creating service:', error);
-        alert('Failed to create service');
-    }
-});
-
-// Event Listeners
-closeBtn.addEventListener('click', () => {
-    serviceModal.style.display = 'none';
-});
-
-window.addEventListener('click', (e) => {
-    if (e.target === serviceModal) {
-        serviceModal.style.display = 'none';
-    }
-});
-
-// Profile dropdown toggle
-document.getElementById('profile-icon').addEventListener('click', function(e) {
-    e.preventDefault();
-    const dropdown = document.getElementById('auth-dropdown');
-    dropdown.classList.toggle('show');
-});
-
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.profile-dropdown')) {
-        const dropdown = document.getElementById('auth-dropdown');
-        dropdown.classList.remove('show');
-    }
-});
-
-// Google OAuth handler
-document.getElementById('google-login').addEventListener('click', function(e) {
-    e.preventDefault();
-    window.location.href = `${API_BASE_URL}/auth/google/login`; // Your OAuth endpoint
-});
-
-// Logout handler
-document.getElementById('logout-btn').addEventListener('click', function(e) {
-    e.preventDefault();
-    fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-    }).then(() => {
-        window.location.reload();
-    });
-});
-
-// Check auth status on page load
-function checkAuthStatus() {
-    fetch(`${API_BASE_URL}/profile/details`, {
-        credentials: 'include'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.authenticated) {
-            document.getElementById('user-info').style.display = 'block';
-            document.getElementById('google-login').style.display = 'none';
-            document.querySelector('.user-email').textContent = data.email;
-            
-            if (data.needsOnboarding) {
-                window.location.href = '/onboarding';
-            }
-        }
-    })
-    .catch(error => console.error('Error checking auth status:', error));
-}
-
-// Call this when page loads
-document.addEventListener('DOMContentLoaded', checkAuthStatus);
-
-
-searchBtn.addEventListener('click', () => {
+// Search Functionality
+searchBtn?.addEventListener('click', () => {
     fetchAndDisplayServices(searchInput.value.trim());
 });
 
-searchInput.addEventListener('keypress', (e) => {
+searchInput?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         fetchAndDisplayServices(searchInput.value.trim());
     }
 });
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is admin (you'll need to implement this properly)
-    const token = localStorage.getItem('token');
-    if (token) {
-        // Here you would typically verify the token and check user role
-        // For now, we'll just assume any logged in user is admin
-        isAdmin = true;
-    }
-    
-    fetchAndDisplayServices();
-});
-document.addEventListener("DOMContentLoaded", async () => {
+// Check Auth Status (For UI Updates)
+
+async function checkAuthStatus() {
+    const token = localStorage.getItem('token') || getCookie('token');
+    if (!token) return false;
+
     try {
-       res=fetch('http://localhost:3000/profile/details', {
-  method: 'GET',
-  headers: {
-    'Authorization': `bearer ${token}`,
-    'Content-Type': 'application/json'
-  },
+  
 
+        const response = await fetch(`${API_BASE_URL}/profile/details`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
-        if (!res.ok) return;
+     
+        if (!response.ok) return false;
 
-        const data = await res.json();
-        const name = data.name;
-
-        // Add name beside profile icon
-        const profileIcon = document.querySelector('.profile-icon'); // adjust selector
-        if (profileIcon) {
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = name;
-            nameSpan.style.marginLeft = "8px";
-            nameSpan.style.fontWeight = "500";
-            profileIcon.parentNode.insertBefore(nameSpan, profileIcon.nextSibling);
+        const data = await response.json();
+    
+        if (data.name) {
+            // Update UI for logged-in user
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('google-login').style.display = 'none';
+            document.querySelector('.user-name').textContent = data.name;
+            
+            // Set admin status if applicable
+            
+            
+            if (!data.name) {
+                window.location.href = '/onboarding';
+            }
+            return true;
         }
-    } catch (err) {
-        console.error("User not logged in");
+        return false;
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        return false;
     }
+}
+
+// Initialize the Application
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load services immediately
+    fetchAndDisplayServices();
+    
+    // Check auth status for UI updates
+    await checkAuthStatus();
+    
+    // Set up profile dropdown if logged in
+    document.getElementById('profile-icon')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('auth-dropdown')?.classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.profile-dropdown')) {
+            document.getElementById('auth-dropdown')?.classList.remove('show');
+        }
+    });
+    
+    // Google OAuth handler
+    document.getElementById('google-login')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = `${API_BASE_URL}/auth/google/login`;
+    });
+    
+    // Logout handler
+    document.getElementById('logout-btn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.removeItem('token');
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        window.location.reload();
+    });
 });
+

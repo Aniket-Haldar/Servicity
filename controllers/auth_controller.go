@@ -76,7 +76,7 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    jwtToken,
-		HTTPOnly: true,
+		HTTPOnly: false,
 		Secure:   false, // set true in production
 		SameSite: "Lax",
 		Path:     "/",

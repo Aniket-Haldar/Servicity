@@ -1,4 +1,11 @@
 const API_BASE_URL = 'http://localhost:3000';
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+const token = getCookie('token');
 
 document.addEventListener('DOMContentLoaded', function() {
     // Toggle between customer/provider fields
@@ -60,13 +67,13 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `bearer ${localStorage.getItem('token')}`
+            'Authorization': `bearer ${token}`
         },
         body: JSON.stringify(formData)
     });
 
     if (response.ok) {
-        window.location.href = '/'; // Redirect to home after successful onboarding
+        window.location.href = '/index.html'; // Redirect to home after successful onboarding
     } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error || 'Failed to update profile'}`);
@@ -79,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Check if user is logged in
-    const token = localStorage.getItem('token');
+ 
     if (!token) {
         window.location.href = 'localhost:3000/auth/google/login';
     }
