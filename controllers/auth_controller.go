@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"net/http"
 
 	"github.com/Aniket-Haldar/Servicity/config"
 	"github.com/Aniket-Haldar/Servicity/models"
@@ -14,13 +13,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// this diverts to the login page
+// Redirect to Google OAuth login
 func GoogleLogin(c *fiber.Ctx) error {
 	url := config.GoogleOAuthConfig.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	return c.Redirect(url)
 }
 
-// this diverts to callback after login is done, done using documentation using recipes of fibre
+// Handle Google OAuth callback
 func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	code := c.Query("code")
 	if code == "" {
@@ -29,7 +28,7 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 
 	token, err := config.GoogleOAuthConfig.Exchange(context.Background(), code)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to exchange token: " + err.Error())
+		return c.Status(fiber.StatusInternalServerError).SendString("Token exchange failed: " + err.Error())
 	}
 
 	client := config.GoogleOAuthConfig.Client(context.Background(), token)
@@ -41,7 +40,7 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to read response body: " + err.Error())
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to read response: " + err.Error())
 	}
 
 	var userInfo map[string]interface{}
@@ -55,13 +54,13 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	}
 
 	user := models.User{}
-	result := db.First(&user, "email = ?", email)
+	result := db.Preload("CustomerProfile").Preload("ProviderProfile").First(&user, "email = ?", email)
 
 	if result.Error != nil {
-
+		// New user
 		user = models.User{
 			Email: email,
-			Role:  "customer",
+			Role:  "customer", // default role
 		}
 		if err := db.Create(&user).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to create user: " + err.Error())
@@ -70,11 +69,27 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 
 	jwtToken, err := utils.GenerateJWT(email)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).SendString("Failed to generate JWT: " + err.Error())
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate JWT: " + err.Error())
 	}
 
-	return c.JSON(fiber.Map{
-		"token": jwtToken,
-		"email": email,
+	// Set cookie with JWT token
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    jwtToken,
+		HTTPOnly: true,
+		Secure:   false, // set true in production
+		SameSite: "Lax",
+		Path:     "/",
+		MaxAge:   86400,
 	})
+
+	// Onboarding check
+	if user.Name == "" || user.Role == "" ||
+		(user.Role == "customer" && user.CustomerProfile.Phone == "") ||
+		(user.Role == "provider" && user.ProviderProfile.Pincode == "") {
+		return c.Redirect("http://localhost:5500/frontend/html/onboarding.html")
+	}
+
+	// Redirect to landing page
+	return c.Redirect("http://localhost:5500/frontend/html/index.html")
 }

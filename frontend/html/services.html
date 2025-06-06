@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Services | Servicity</title>
+    <link rel="stylesheet" href="../css/services.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header class="hero-banner">
+            <div class="hero-content">
+                <h1>Discover Premium Services</h1>
+                <p class="subtitle">Handpicked professionals for your every need</p>
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Find services...">
+                    </div>
+                    <select id="categoryFilter">
+                        <option value="all">All Categories</option>
+                        <option value="cleaning">Home Cleaning</option>
+                        <option value="repair">Repairs</option>
+                        <option value="beauty">Beauty</option>
+                        <option value="moving">Moving Help</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="services-container" id="servicesGrid">
+                <!-- Loading skeleton -->
+                <div class="service-card skeleton">
+                    <div class="service-image"></div>
+                    <div class="service-content">
+                        <div class="skeleton-line" style="width: 70%"></div>
+                        <div class="skeleton-line" style="width: 90%"></div>
+                        <div class="skeleton-line" style="width: 60%"></div>
+                        <div class="skeleton-btn"></div>
+                    </div>
+                </div>
+                <!-- Repeat skeleton cards as needed -->
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/services.js"></script>
+</body>
+</html>

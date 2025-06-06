@@ -336,7 +336,7 @@ document.getElementById('logout-btn').addEventListener('click', function(e) {
 
 // Check auth status on page load
 function checkAuthStatus() {
-    fetch('/api/auth/status', {
+    fetch(`${API_BASE_URL}/profile/details`, {
         credentials: 'include'
     })
     .then(response => response.json())
@@ -379,4 +379,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     fetchAndDisplayServices();
+});
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+       res=fetch('http://localhost:3000/profile/details', {
+  method: 'GET',
+  headers: {
+    'Authorization': `bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const name = data.name;
+
+        // Add name beside profile icon
+        const profileIcon = document.querySelector('.profile-icon'); // adjust selector
+        if (profileIcon) {
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            nameSpan.style.marginLeft = "8px";
+            nameSpan.style.fontWeight = "500";
+            profileIcon.parentNode.insertBefore(nameSpan, profileIcon.nextSibling);
+        }
+    } catch (err) {
+        console.error("User not logged in");
+    }
 });

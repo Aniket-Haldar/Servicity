@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicity | Complete Your Profile</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/onboarding.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-header">
+            <img src="../images/logo.png" alt="Servicity" class="logo">
+            <h1>Complete Your Profile</h1>
+            <p>Tell us more about yourself to get started</p>
+        </div>
+
+        <form id="onboarding-form">
+            <div class="form-section">
+                <h2>Basic Information</h2>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Account Type</h2>
+                <div class="role-selector">
+                    <input type="radio" id="customer" name="role" value="Customer" checked>
+                    <label for="customer" class="role-card">
+                        <i class="fas fa-home"></i>
+                        <h3>Customer</h3>
+                        <p>I want to book services</p>
+                    </label>
+
+                    <input type="radio" id="provider" name="role" value="Provider">
+                    <label for="provider" class="role-card">
+                        <i class="fas fa-tools"></i>
+                        <h3>Service Provider</h3>
+                        <p>I want to offer services</p>
+                    </label>
+                </div>
+            </div>
+
+            <div id="provider-fields" class="form-section" style="display: none;">
+                <h2>Service Provider Details</h2>
+                <div class="form-group">
+                    <label for="profession">Profession</label>
+                    <input type="text" id="profession" name="profession">
+                </div>
+                <div class="form-group">
+                    <label for="pincode">Service Area Pincode</label>
+                    <input type="text" id="pincode" name="pincode">
+                </div>
+                <div class="form-group">
+                    <label for="pricing">Hourly Rate (₹)</label>
+                    <input type="number" id="pricing" name="pricing" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="availableTimings">Available Timings</label>
+                    <input type="text" id="availableTimings" name="availableTimings" placeholder="e.g. 9am-5pm, Mon-Fri">
+                </div>
+            </div>
+
+            <div id="customer-fields" class="form-section">
+                <h2>Customer Details</h2>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Complete Profile</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="../js/onboarding.js"></script>
+</body>
+</html>

@@ -41,12 +41,21 @@ func main() {
 	app := fiber.New()
 	//cors error showing
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://127.0.0.1:5500, http://localhost:3000, http://localhost:5500",
-		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowOrigins:     "http://127.0.0.1:5500, http://localhost:3000, http://localhost:5500",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowCredentials: true,
 	}))
 
 	routes.SetupRoutes(app, db)
+	app.Get("/secure", middleware.RequireAuth, func(c *fiber.Ctx) error {
+
+		email := c.Locals("userEmail").(string)
+		return c.JSON(fiber.Map{
+			"message": "You are authenticated!",
+			"email":   email,
+		})
+	})
 
 	log.Fatal(app.Listen(":3000"))
 }
