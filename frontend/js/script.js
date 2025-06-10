@@ -244,8 +244,7 @@ async function checkAuthStatus() {
             document.getElementById('google-login').style.display = 'none';
             document.querySelector('.user-name').textContent = data.name;
             
-            // Set admin status if applicable
-            
+                  
             
             if (!data.name) {
                 window.location.href = '/onboarding';

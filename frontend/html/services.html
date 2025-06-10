@@ -10,11 +10,11 @@
 </head>
 <body>
     <div class="page-wrapper">
-        <header class="hero-banner">
+        <header class="services-header">
             <div class="hero-content">
                 <h1>Discover Premium Services</h1>
                 <p class="subtitle">Handpicked professionals for your every need</p>
-                <div class="search-container">
+                <div class="search-filter">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" id="searchInput" placeholder="Find services...">
@@ -31,7 +31,7 @@
         </header>
 
         <main class="main-content">
-            <div class="services-container" id="servicesGrid">
+            <div class="services-grid" id="servicesGrid">
                 <!-- Loading skeleton -->
                 <div class="service-card skeleton">
                     <div class="service-image"></div>
@@ -45,6 +45,11 @@
                 <!-- Repeat skeleton cards as needed -->
             </div>
         </main>
+    </div>
+
+    <div id="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading services...</p>
     </div>
 
     <script src="../js/services.js"></script>

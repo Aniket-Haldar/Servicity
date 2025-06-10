@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Service | Servicity</title>
+    <link rel="stylesheet" href="../css/booking.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        #loading-spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #6c63ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Book Your Service</h1>
+            <p>Schedule professional services with ease</p>
+        </div>
+    </header>
+
+    <main class="container booking-container">
+        <div id="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <section class="booking-section" id="booking-form">
+            <h2><i class="fas fa-calendar-alt"></i> Booking Details</h2>
+            
+            <div class="service-info">
+                <img id="service-image" src="../images/default-service.jpg" alt="Service Image">
+                <div>
+                    <h3 id="service-name">Service Name</h3>
+                    <p id="service-provider">Provider: Loading...</p>
+                    <p id="service-price">Price: Loading...</p>
+                </div>
+            </div>
+            
+            <form id="booking-details-form">
+                <div class="form-group">
+                    <label for="booking-date">Date</label>
+                    <input type="date" id="booking-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="booking-time">Time</label>
+                    <input type="time" id="booking-time" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="booking-address">Service Address</label>
+                    <textarea id="booking-address" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="special-notes">Special Instructions (Optional)</label>
+                    <textarea id="special-notes" rows="3"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" id="confirm-booking" class="btn-primary">
+                        <i class="fas fa-check"></i> Confirm Booking
+                    </button>
+                    <button type="button" id="cancel-booking" class="btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="booking-section" id="booking-confirmation">
+            <div class="confirmation-message">
+                <i class="fas fa-check-circle success-icon"></i>
+                <h2>Booking Confirmed!</h2>
+                <p>Your booking has been successfully scheduled.</p>
+                
+                <div class="booking-summary">
+                    <h3>Booking Summary</h3>
+                    <div id="confirmation-details"></div>
+                </div>
+                
+                <div class="confirmation-actions">
+                    <button id="new-booking-btn" class="btn-primary">
+                        <i class="fas fa-plus"></i> New Booking
+                    </button>
+                    <a href="dashboard.html" class="btn-secondary">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/booking.js"></script>
+</body>
+</html>
