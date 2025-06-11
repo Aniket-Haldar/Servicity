@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicity | Customer Dashboard</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/dashboard_customer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">
+                <img src="../images/logo.png" alt="Servicity">
+            </a>
+            <div class="nav-links">
+                <a href="dashboard_customer.html" class="nav-link active">Dashboard</a>
+                <a href="services.html" class="nav-link">Services</a>
+                <a href="#" class="nav-link">About</a>
+                <a href="#" class="nav-link">Contact</a>
+                <div class="profile-dropdown">
+                    <a href="#" id="profile-icon">
+                        <img src="../images/profile.svg" alt="Profile" class="profile-icon">
+                        <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
+                    </a>
+                    <div id="auth-dropdown" class="dropdown-menu">
+                        <button id="google-login" class="oauth-btn">
+                            <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
+                            <span>Continue with Google</span>
+                        </button>
+                        <div id="user-info" style="display: none;">
+                            <div class="user-email"></div>
+                            <button id="logout-btn" class="logout-btn">Log Out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="hamburger">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="dashboard-main">
+        <div class="container">
+            <h1 class="dashboard-title">My Dashboard</h1>
+            <div class="dashboard-sections">
+                <section class="dashboard-section" id="bookings">
+                    <h2><i class="fa fa-calendar-check"></i> My Bookings</h2>
+                    <div id="bookings-list" class="dashboard-list">
+                        <div class="loading-spinner"><div class="spinner"></div>Loading your bookings...</div>
+                    </div>
+                </section>
+                <section class="dashboard-section" id="profile">
+                    <h2><i class="fa fa-user-circle"></i> My Profile</h2>
+                    <div id="profile-info" class="dashboard-list">
+                        <div class="loading-spinner"><div class="spinner"></div>Loading your profile...</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Booking Modal -->
+    <div class="modal" id="edit-booking-modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" id="close-edit-booking">&times;</span>
+            <h2>Edit Booking</h2>
+            <form id="edit-booking-form">
+                <input type="hidden" id="edit-booking-id">
+                <div class="form-group">
+                    <label for="edit-booking-date">Date</label>
+                    <input type="date" id="edit-booking-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-booking-phone">Phone Number</label>
+                    <input type="tel" id="edit-booking-phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-booking-address">Address</label>
+                    <input type="text" id="edit-booking-address" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="edit-profile-modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" id="close-edit-profile">&times;</span>
+            <h2>Edit Profile</h2>
+            <form id="edit-profile-form">
+                <div class="form-group">
+                    <label for="edit-profile-name">Name</label>
+                    <input type="text" id="edit-profile-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-profile-email">Email</label>
+                    <input type="email" id="edit-profile-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-profile-phone">Phone Number</label>
+                    <input type="tel" id="edit-profile-phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-profile-address">Address</label>
+                    <input type="text" id="edit-profile-address" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/dashboard_customer.js"></script>
+</body>
+</html>

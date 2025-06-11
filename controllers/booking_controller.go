@@ -2,77 +2,51 @@ package controllers
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Aniket-Haldar/Servicity/models"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-// post method for booking
+// POST /booking
 func CreateBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var Booking models.Booking
-		if err := c.BodyParser(&Booking); err != nil {
-			return c.Status(400).JSON(err.Error())
+		var booking models.Booking
+		if err := c.BodyParser(&booking); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
-		if err := db.Create(&Booking).Error; err != nil {
+		if booking.BookingTime.IsZero() {
+			booking.BookingTime = time.Now()
+		}
+		if booking.Status == "" {
+			booking.Status = "pending"
+		}
+		if err := db.Create(&booking).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.JSON(Booking)
+		return c.JSON(booking)
 	}
 }
 
-// get method for booking
+// GET /booking
 func GetBookings(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		Bookings := []models.Booking{}
-		if err := db.Find(&Bookings).Error; err != nil {
+		var bookings []models.Booking
+		if err := db.Find(&bookings).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		return c.JSON(Bookings)
+		return c.JSON(bookings)
 	}
 }
 
-// function to find id
-func FindBooking(db *gorm.DB, id int, booking *models.Booking) error {
-	if id == 0 {
-		return errors.New("ID must not be zero")
-	}
-	if err := db.First(booking, "id = ?", id).Error; err != nil {
-		return err
-	}
-	return nil
-}
-
-// to find by specific id
+// GET /booking/:id
 func GetBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
 		if err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "ID must be an integer"})
 		}
-
-		var booking models.Booking
-		if err := FindBooking(db, id, &booking); err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return c.Status(404).JSON(fiber.Map{"error": "booking not found"})
-			}
-			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
-		}
-
-		return c.JSON(booking)
-	}
-}
-
-// update by PUT method
-func UpdateBooking(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-
-		id, err := c.ParamsInt("id")
-		if err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "ID must be an integer"})
-		}
-
 		var booking models.Booking
 		if err := db.First(&booking, id).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -80,39 +54,52 @@ func UpdateBooking(db *gorm.DB) fiber.Handler {
 			}
 			return c.Status(500).JSON(fiber.Map{"error": "Database error"})
 		}
-
-		var updateData models.Booking
-		if err := c.BodyParser(&updateData); err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
-		}
-
-		if err := db.Model(&booking).Updates(updateData).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{"error": "Failed to update Booking"})
-		}
-
 		return c.JSON(booking)
 	}
 }
 
-// delete by DELETE method
-func DeleteBooking(db *gorm.DB) fiber.Handler {
+// PATCH /booking/:id
+func UpdateBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-
 		id, err := c.ParamsInt("id")
 		if err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "ID must be an integer"})
 		}
-
 		var booking models.Booking
 		if err := db.First(&booking, id).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return c.Status(404).JSON(fiber.Map{"error": "booking not found"})
+				return c.Status(404).JSON(fiber.Map{"error": "Booking not found"})
+			}
+			return c.Status(500).JSON(fiber.Map{"error": "Database error"})
+		}
+		var updateData models.Booking
+		if err := c.BodyParser(&updateData); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+		}
+		if err := db.Model(&booking).Updates(updateData).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to update booking"})
+		}
+		return c.JSON(booking)
+	}
+}
+
+// DELETE /booking/:id
+func DeleteBooking(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id, err := c.ParamsInt("id")
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "ID must be an integer"})
+		}
+		var booking models.Booking
+		if err := db.First(&booking, id).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.Status(404).JSON(fiber.Map{"error": "Booking not found"})
 			}
 			return c.Status(500).JSON(fiber.Map{"error": "Database error"})
 		}
 		if err := db.Delete(&booking).Error; err != nil {
-			return c.Status(404).JSON(fiber.Map{"error": "booking not found"})
+			return c.Status(500).JSON(fiber.Map{"error": "Failed to delete booking"})
 		}
-		return c.Status(200).SendString("Succesfully Deleted")
+		return c.JSON(fiber.Map{"message": "Successfully deleted"})
 	}
 }
