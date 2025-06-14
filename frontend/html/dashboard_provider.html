@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicity | Provider Dashboard</title>
+    <link rel="stylesheet" href="../css/dashboard_provider.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="../images/logo.png" alt="Servicity">
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="dashboard_provider.html" class="nav-link active">Dashboard</a>
+                <a href="services.html" class="nav-link">Services</a>
+                <a href="#" class="nav-link">About</a>
+                <a href="#" class="nav-link">Contact</a>
+                <!-- Profile Icon + Dropdown -->
+                <div class="profile-dropdown">
+                    <a href="#" id="profile-icon">
+                        <img src="../images/profile.svg" alt="Profile" class="profile-icon">
+                        <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
+                    </a>
+                    <div id="auth-dropdown" class="dropdown-menu">
+                        <!-- Shown before login -->
+                        <button id="google-login" class="oauth-btn">
+                            <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
+                            <span>Continue with Google</span>
+                        </button>
+                        <!-- Shown after login -->
+                        <div id="user-info" style="display: none;">
+                            <div class="user-email"></div>
+                            <button id="logout-btn" class="logout-btn">Log Out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="hamburger">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <h1 class="dashboard-title">Provider Dashboard</h1>
+            <div class="dashboard-sections">
+                <section class="dashboard-section" id="services">
+                    <div class="section-header">
+                        <h2><i class="fa fa-briefcase"></i> My Services</h2>
+                        <button class="btn btn-primary" id="show-create-form">
+                            <i class="fa fa-plus"></i> Add New Service
+                        </button>
+                    </div>
+                    <div id="service-form-container" style="display:none; margin-bottom:1.5rem;">
+                        <form id="service-form">
+                            <input type="hidden" id="service-id">
+                            <div class="form-group">
+                                <input type="text" id="service-name" placeholder="Service Name" required>
+                            </div>
+                            <div class="form-group">
+                                <textarea id="service-description" placeholder="Description"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <input type="number" id="service-price" placeholder="Price (₹)" required>
+                                <input type="text" id="service-category" placeholder="Category" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="url" id="service-image-url" placeholder="Image URL">
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-success" type="submit">Save</button>
+                                <button class="btn btn-secondary" type="button" id="cancel-form">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="provider-services" class="dashboard-list"></div>
+                </section>
+                <section class="dashboard-section" id="bookings">
+                    <h2><i class="fa fa-calendar-check"></i> Customer Bookings</h2>
+                    <div id="provider-bookings" class="dashboard-list"></div>
+                </section>
+            </div>
+        </div>
+    </main>
+    <script src="../js/dashboard_provider.js"></script>
+    <script>
+    // Hamburger mobile nava
+    document.querySelector('.hamburger')?.addEventListener('click', function() {
+        document.querySelector('.nav-links')?.classList.toggle('active');
+    });
+    // Dropdown
+    document.getElementById('profile-icon')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('auth-dropdown')?.classList.toggle('show');
+    });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.profile-dropdown')) {
+            document.getElementById('auth-dropdown')?.classList.remove('show');
+        }
+    });
+    // Highlight nav
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    </script>
+</body>
+</html>

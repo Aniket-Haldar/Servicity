@@ -8,7 +8,11 @@ import (
 
 func DashboardController(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userEmail := c.Locals("userEmail").(string)
+		userEmailVal := c.Locals("userEmail")
+		userEmail, ok := userEmailVal.(string)
+		if !ok || userEmail == "" {
+			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+		}
 		var user models.User
 		if err := db.Preload("ProviderProfile").First(&user, "email = ?", userEmail).Error; err != nil {
 			return c.Status(404).JSON(fiber.Map{"error": "User not found"})

@@ -18,7 +18,7 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 
 	service := app.Group("/services")
 
-	service.Post("/", controllers.CreateService(db))
+	service.Post("/", middleware.RequireAuth, controllers.CreateService(db))
 	service.Get("/", controllers.GetServices(db))
 	service.Get("/:id", controllers.GetService(db))
 	service.Put("/:id", controllers.UpdateService(db))

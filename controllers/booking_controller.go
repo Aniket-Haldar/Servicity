@@ -16,6 +16,14 @@ func CreateBooking(db *gorm.DB) fiber.Handler {
 		if err := c.BodyParser(&booking); err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
+
+		// Look up the service to get the correct provider
+		var service models.Service
+		if err := db.First(&service, booking.ServiceID).Error; err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid service ID"})
+		}
+		booking.ProviderID = service.ProviderID // <-- SET PROVIDER ID HERE
+
 		if booking.BookingTime.IsZero() {
 			booking.BookingTime = time.Now()
 		}

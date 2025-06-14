@@ -5,7 +5,7 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-const token = getCookie('token');
+
 
 document.addEventListener('DOMContentLoaded', function() {
     // Toggle between customer/provider fields
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (response.ok) {
-        window.location.href = '/index.html'; // Redirect to home after successful onboarding
+        window.location.href = 'index.html'; // Redirect to home after successful onboarding
     } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error || 'Failed to update profile'}`);

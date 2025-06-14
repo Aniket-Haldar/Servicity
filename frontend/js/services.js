@@ -67,35 +67,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Render services with proper booking links
-    function renderServices(services) {
-        if (services.length === 0) {
-            servicesGrid.innerHTML = `
-                <div class="no-services">
-                    <i class="fas fa-box-open"></i>
-                    <p>No services available at the moment.</p>
-                </div>
-            `;
-            return;
-        }
-
-        servicesGrid.innerHTML = services.map(service => `
-            <div class="service-card" data-category="${service.category ? service.category.toLowerCase() : 'other'}">
-                <div class="service-image" style="background-image: url('${service.image_url || '../images/default-service.jpg'}')"></div>
-                <div class="service-content">
-                    <h3>${service.name}</h3>
-                    <p>${service.description || 'Professional service available'}</p>
-                    <div class="service-meta">
-                        <span class="price">₹${service.price || '--'}/${service.price_unit || 'service'}</span>
-                        <span class="rating">
-                            ${'★'.repeat(Math.floor(service.rating || 0))}${'☆'.repeat(5 - Math.floor(service.rating || 0))}
-                            (${service.review_count || 0})
-                        </span>
-                    </div>
-                    <a href="booking.html?serviceId=${service.id}" class="book-btn">Book Now</a>
-                </div>
+   function renderServices(services) {
+    if (services.length === 0) {
+        servicesGrid.innerHTML = `
+            <div class="no-services">
+                <i class="fas fa-box-open"></i>
+                <p>No services available at the moment.</p>
             </div>
-        `).join('');
+        `;
+        return;
     }
+
+    servicesGrid.innerHTML = services.map(service => `
+        <div class="service-card" data-category="${service.Category ? service.Category.toLowerCase() : 'other'}">
+            <div class="service-image" style="background-image: url('${service.image_url || '../images/default-service.jpg'}')"></div>
+            <div class="service-content">
+                <h3>${service.Name || "Untitled Service"}</h3>
+                <p>${service.Description || "Professional service available"}</p>
+                <div class="service-meta">
+                    <span class="price">₹${service.Price != null ? service.Price : '--'}/${service.price_unit || 'service'}</span>
+                    <span class="rating">
+                        ${'★'.repeat(Math.floor(service.rating || 0))}${'☆'.repeat(5 - Math.floor(service.rating || 0))}
+                        (${service.review_count || 0})
+                    </span>
+                </div>
+                <a href="booking.html?serviceId=${service.ID}" class="book-btn">Book Now</a>
+            </div>
+        </div>
+    `).join('');
+}
 
     // Filter services
     function filterServices() {

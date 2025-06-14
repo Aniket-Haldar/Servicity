@@ -7,9 +7,7 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
     return null;
 }
-function getToken() {
-    return localStorage.getItem('token') || getCookie('token');
-}
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Elements
@@ -60,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let customerId = null;
     async function fetchCurrentUser() {
         try {
-            const token = getToken();
+            const token = getCookie('token');
             if (!token) throw new Error('Please login to book a service.');
             showLoading(true);
             const response = await fetch(`${API_BASE_URL}/profile/details`, {
@@ -89,20 +87,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Load service details
+    // Load service details and provider name
     async function loadServiceDetails() {
         try {
             showLoading(true);
             const response = await fetch(`${API_BASE_URL}/services/${serviceId}`);
             if (!response.ok) throw new Error('Service not found.');
             const service = await response.json();
-            serviceName.textContent = service.name || 'Service Name';
-            serviceProvider.textContent = `Provider: ${service.provider_name || 'Professional'}`;
-            servicePrice.textContent = `Price: ${service.price ? '₹' + service.price : 'Variable'}`;
+
+            // Use correct property names (capitalized)
+            serviceName.textContent = service.Name || 'Service Name';
+            servicePrice.textContent = `Price: ${service.Price != null ? '₹' + service.Price : 'Variable'}`;
             if (service.image_url) {
                 serviceImage.src = service.image_url;
                 serviceImage.style.display = 'block';
             }
+
+            // Fetch provider name using provider_id
+            let providerName = 'Professional';
+            if (service.provider_id) {
+                try {
+                   const token = getCookie('token');    
+                        const providerResp = await fetch(`${API_BASE_URL}/profile/${service.provider_id}`, {
+                            headers: {
+                            'Authorization': `Bearer ${token}`
+                            }
+                    });
+                    if (providerResp.ok) {
+                        const provider = await providerResp.json();
+                        console.log(provider);
+                        console.log(providerResp);
+                        // Use the correct property for name, e.g., provider.Name or provider.name
+                        providerName = provider.Name || provider.name || provider.username || 'Professional';
+                    }
+                } catch (err) {
+                    // Ignore error, fallback to default providerName
+                }
+            }
+            serviceProvider.textContent = `Provider: ${providerName}`;
+
             // Set default booking time (next available hour)
             const now = new Date();
             now.setMinutes(0, 0, 0);
@@ -151,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!validateForm()) return;
         try {
             showLoading(true);
-            const token = getToken();
+            const token = getCookie('token');
             if (!token) throw new Error('Not logged in.');
             if (!customerId) throw new Error('Could not determine current customer ID.');
             const bookingData = {
