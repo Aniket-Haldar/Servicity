@@ -85,25 +85,39 @@ async function fetchAndDisplayBookings() {
         bookingsList.innerHTML = '';
 
         if (Array.isArray(data) && data.length) {
-            bookingsList.innerHTML = data.map(b => {
-                const bookingId = getBookingId(b);
-                return `
-                <div class="booking-item" data-booking-id="${bookingId}">
-                    <div class="booking-header">${b.serviceName || b.service || "Service"}</div>
-                    <div class="booking-meta">Date: ${b.booking_time ? new Date(b.booking_time).toLocaleString() : "Unknown"}</div>
-                    <div class="booking-meta">Email: ${b.email || ''}</div>
-                    <div class="booking-meta">Phone: ${b.phone || ''}</div>
-                    <div class="booking-meta">Address: ${b.address || ''}</div>
-                    <div>Status: ${renderStatus(b.status || "Pending")}</div>
-                    <div class="booking-actions">
-                        <button class="btn btn-outline edit-booking-btn" data-booking-id="${bookingId}">Edit</button>
-                        <button class="btn btn-danger cancel-booking-btn" data-booking-id="${bookingId}">Cancel</button>
-                    </div>
-                </div>
-                `;
-            }).join('');
+         bookingsList.innerHTML = '';
+data.forEach(b => {
+    const bookingId = getBookingId(b);
 
-            setupBookingActions(data);
+    // 1. Create booking card DOM element
+    const card = document.createElement('div');
+    card.className = "booking-item";
+    card.setAttribute("data-booking-id", bookingId);
+
+    card.innerHTML = `
+        <div class="booking-header">${b.serviceName || b.service || "Service"}</div>
+        <div class="booking-meta">Date: ${b.booking_time ? new Date(b.booking_time).toLocaleString() : "Unknown"}</div>
+        <div class="booking-meta">Email: ${b.email || ''}</div>
+        <div class="booking-meta">Phone: ${b.phone || ''}</div>
+        <div class="booking-meta">Address: ${b.address || ''}</div>
+        <div>Status: ${renderStatus(b.status || "Pending")}</div>
+        <div class="booking-actions">
+            <button class="btn btn-outline edit-booking-btn" data-booking-id="${bookingId}">Edit</button>
+            <button class="btn btn-danger cancel-booking-btn" data-booking-id="${bookingId}">Cancel</button>
+        </div>
+    `;
+    bookingsList.appendChild(card);
+
+
+    if (window.currentUser && window.currentUser.profile) {
+        const customerId = window.currentUser.profile.UserID;
+        
+        addReviewButtonToBooking(b, card.querySelector('.booking-actions'), customerId);
+        console.log
+    }
+});
+setupBookingActions(data);
+window.currentUser = data;
         } else {
             bookingsList.innerHTML = '<em>No bookings found.</em>';
         }
@@ -210,7 +224,7 @@ if (closeEditBooking) {
     closeEditBooking.addEventListener('click', () => hideModal('edit-booking-modal'));
 }
 
-// Store profileId for PUT /profile/:id
+//PUT /profile/:id
 let currentProfileId = null;
 
 async function fetchAndDisplayProfile() {
@@ -230,12 +244,7 @@ async function fetchAndDisplayProfile() {
     }
 
     try {
-        // Use your new GET method for user by id if you have user ID, else fallback
-        // If you store userId somewhere (e.g. localStorage), use it:
-        // const userId = localStorage.getItem('userId');
-        // let url = userId ? `${API_BASE_URL}/profile/user/${userId}` : `${API_BASE_URL}/profile/details`;
-
-        // For most users, just use details:
+ 
         const url = `${API_BASE_URL}/profile/details`;
 
         const response = await fetch(url, {
@@ -247,10 +256,9 @@ async function fetchAndDisplayProfile() {
         const data = await response.json();
         profileInfo.innerHTML = '';
 
-        // Save profile id for use in edit
         currentProfileId = (data.profile && (data.profile.ID || data.profile.id)) || null;
 
-        // Show phone and address from profile if present
+    
         const phone = (data.profile && (data.profile.Phone || data.profile.phone)) || data.phone || '';
         const address = (data.profile && (data.profile.Address || data.profile.address)) || data.address || '';
 
@@ -361,7 +369,7 @@ if (closeEditProfile) {
     closeEditProfile.addEventListener('click', () => hideModal('edit-profile-modal'));
 }
 
-// Initialize the Dashboard
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await Promise.all([
@@ -369,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetchAndDisplayProfile()
         ]);
 
-        // Profile dropdown toggle
+        
         const profileIcon = document.getElementById('profile-icon');
         if (profileIcon) {
             profileIcon.addEventListener('click', function(e) {
@@ -379,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // Close dropdown when clicking outside
+
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.profile-dropdown')) {
                 const authDropdown = document.getElementById('auth-dropdown');
@@ -387,7 +395,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // Google OAuth handler
+        //Google OAuth handler
         const googleLogin = document.getElementById('google-login');
         if (googleLogin) {
             googleLogin.addEventListener('click', function(e) {
@@ -396,7 +404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // Logout handler
+   
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function(e) {

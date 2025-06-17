@@ -27,11 +27,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const specialNotes = document.getElementById('special-notes');
     const confirmationDetails = document.getElementById('confirmation-details');
 
-    // Buttons
+
     const cancelBtn = document.getElementById('cancel-booking');
     const newBookingBtn = document.getElementById('new-booking-btn');
 
-    // Utils
+
     function showLoading(show) {
         loadingSpinner.style.display = show ? 'flex' : 'none';
     }
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         errorMessage.style.display = 'none';
     }
 
-    // Get serviceId from URL
+
     const urlParams = new URLSearchParams(window.location.search);
     const serviceId = urlParams.get('serviceId');
     if (!serviceId || !/^\d+$/.test(serviceId)) {
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Load current user profile for autofill
+
     let currentUser = null;
     let customerId = null;
     async function fetchCurrentUser() {
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) throw new Error('Failed to load user profile.');
             currentUser = await response.json();
 
-            // Extract customerId using your actual response structure
+
             if (
                 currentUser.profile &&
                 (currentUser.profile.UserID || currentUser.profile.ID)
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 customerId = currentUser.profile.UserID || currentUser.profile.ID;
             }
 
-            // Autofill fields if available
+
             bookingEmail.value = currentUser.email || '';
             bookingPhone.value = (currentUser.profile && currentUser.profile.Phone) || '';
             bookingAddress.value = (currentUser.profile && currentUser.profile.Address) || '';
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Load service details and provider name
+
     async function loadServiceDetails() {
         try {
             showLoading(true);
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) throw new Error('Service not found.');
             const service = await response.json();
 
-            // Use correct property names (capitalized)
+
             serviceName.textContent = service.Name || 'Service Name';
             servicePrice.textContent = `Price: ${service.Price != null ? '₹' + service.Price : 'Variable'}`;
             if (service.image_url) {
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 serviceImage.style.display = 'block';
             }
 
-            // Fetch provider name using provider_id
+
             let providerName = 'Professional';
             if (service.provider_id) {
                 try {
@@ -121,12 +121,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         providerName = provider.Name || provider.name || provider.username || 'Professional';
                     }
                 } catch (err) {
-                    // Ignore error, fallback to default providerName
+   
                 }
             }
             serviceProvider.textContent = `Provider: ${providerName}`;
 
-            // Set default booking time (next available hour)
+ 
             const now = new Date();
             now.setMinutes(0, 0, 0);
             now.setHours(now.getHours() + 1);
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Validate form
+
     function validateForm() {
         if (!bookingDate.value || !bookingTime.value) {
             showError('Please select date and time.');
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             showError('Please enter your phone number.');
             return false;
         }
-        // Validate future date/time
+
         const selectedDateTime = new Date(`${bookingDate.value}T${bookingTime.value}`);
         if (selectedDateTime < new Date()) {
             showError('Please select a future date and time.');
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return true;
     }
 
-    // Submit booking
+    
     bookingForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();

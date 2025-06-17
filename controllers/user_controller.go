@@ -55,7 +55,7 @@ func UpdateProfile(db *gorm.DB) fiber.Handler {
 				if err := tx.Where("user_id = ?", userID).Delete(&models.CustomerProfile{}).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 					return err
 				}
-				// Create or update provider profile
+
 				providerProfile := models.ProviderProfile{
 					UserID:           userID,
 					Profession:       input.Profession,
@@ -69,11 +69,11 @@ func UpdateProfile(db *gorm.DB) fiber.Handler {
 					return err
 				}
 			case "Customer":
-				// Delete provider profile if exists
+				//delete provider if exissts
 				if err := tx.Where("user_id = ?", userID).Delete(&models.ProviderProfile{}).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 					return err
 				}
-				// Create or update customer profile
+
 				customerProfile := models.CustomerProfile{
 					UserID:  userID,
 					Address: input.Address,
@@ -135,7 +135,7 @@ func GetProfile(db *gorm.DB) fiber.Handler {
 			"role":  user.Role,
 		}
 
-		// Get appropriate profile based on role
+		//role based
 		switch user.Role {
 		case "Provider":
 			var profile models.ProviderProfile
@@ -192,7 +192,6 @@ func PutProfile(db *gorm.DB) fiber.Handler {
 				return c.Status(500).JSON(fiber.Map{"error": "Failed to update provider profile"})
 			}
 
-			// Optionally update user basic info
 			var user models.User
 			if err := db.First(&user, profile.UserID).Error; err == nil {
 				user.Name = input.Name
@@ -224,7 +223,6 @@ func PutProfile(db *gorm.DB) fiber.Handler {
 				return c.Status(500).JSON(fiber.Map{"error": "Failed to update customer profile"})
 			}
 
-			// Optionally update user basic info
 			var user models.User
 			if err := db.First(&user, profile.UserID).Error; err == nil {
 				user.Name = input.Name
@@ -272,7 +270,7 @@ func GetUserByID(db *gorm.DB) fiber.Handler {
 			"role":  user.Role,
 		}
 
-		// Attach appropriate profile based on role
+		//role
 		switch user.Role {
 		case "Provider":
 			var profile models.ProviderProfile

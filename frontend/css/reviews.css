@@ -1,0 +1,13 @@
+#review-modal {
+    display: none; position: fixed; z-index: 1001; top: 0; left: 0; width: 100vw; height: 100vh;
+}
+#review-modal .modal-overlay {
+    position: absolute; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4);
+}
+#review-modal .modal-content {
+    position: absolute; background: #fff; border-radius: 8px; box-shadow: 0 2px 16px #2224; 
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+    padding: 32px; min-width: 320px;
+}
+.review-card { border: 1px solid #eee; border-radius:6px; background: #fafafa; margin-bottom: 10px; padding: 12px; }
+.review-rating { color: #f1c40f; font-size: 1.2em; }

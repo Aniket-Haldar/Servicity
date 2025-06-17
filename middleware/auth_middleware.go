@@ -31,7 +31,7 @@ func RequireAuth(c *fiber.Ctx) error {
 	}
 
 	token := splitToken[1]
-	email, err := utils.ParseJWT(token) // Ensure this returns (string, error)
+	email, err := utils.ParseJWT(token)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid or expired token",

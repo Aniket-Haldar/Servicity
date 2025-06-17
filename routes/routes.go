@@ -33,6 +33,13 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	booking.Put("/:id", controllers.UpdateBooking(db))
 	booking.Delete("/:id", controllers.DeleteBooking(db))
 
+	review := app.Group("/reviews")
+	review.Post("/", controllers.CreateReview(db))
+	review.Get("/", controllers.GetAllReviews(db))
+	review.Get("/:id", controllers.GetReview(db))
+	review.Put("/:id", controllers.UpdateReview(db))
+	review.Delete("/:id", controllers.DeleteReview(db))
+
 	auth := app.Group("/auth")
 	auth.Get("/google/login", controllers.GoogleLogin)
 	auth.Get("/google/callback", func(c *fiber.Ctx) error {

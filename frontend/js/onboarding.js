@@ -63,7 +63,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
      try {
+         const token=getCookie('token');
     const response = await fetch(`${API_BASE_URL}/profile/update`, {
+       
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -86,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Check if user is logged in
- 
+    const token=getCookie('token');
     if (!token) {
         window.location.href = 'localhost:3000/auth/google/login';
     }
