@@ -1,6 +1,6 @@
 const API_BASE_URL = 'http://localhost:3000';
 
-// Helper: get token from localStorage/cookie
+
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -10,7 +10,7 @@ function getCookie(name) {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Elements
+  
     const bookingForm = document.getElementById('booking-form');
     const confirmationSection = document.getElementById('booking-confirmation');
     const errorMessage = document.getElementById('error-message');
@@ -235,7 +235,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = 'services.html';
     });
 
-    // Init
     showLoading(true);
     await fetchCurrentUser();
     await loadServiceDetails();

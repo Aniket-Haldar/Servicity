@@ -13,19 +13,17 @@ type ProfileUpdateInput struct {
 	Name string `json:"name" validate:"required"`
 	Role string `json:"role" validate:"required,oneof=Provider Customer"`
 
-	// Provider fields
+	//provider fields
 	Profession       string  `json:"profession,omitempty"`
 	Pincode          string  `json:"pincode,omitempty"`
 	Pricing          float64 `json:"pricing,omitempty"`
 	AvailableTimings string  `json:"availableTimings,omitempty"`
 
-	// Customer fields
+	//customer fields
 	Address string `json:"address,omitempty"`
 	Phone   string `json:"phone,omitempty"`
 }
 
-// UpdateProfile handles updating user profile information (for authenticated user)
-// POST /profile/update
 func UpdateProfile(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userID := c.Locals("userID").(uint)
@@ -37,9 +35,8 @@ func UpdateProfile(db *gorm.DB) fiber.Handler {
 			})
 		}
 
-		// Start a transaction to ensure data consistency
 		err := db.Transaction(func(tx *gorm.DB) error {
-			// Update user basic info
+
 			var user models.User
 			if err := tx.First(&user, userID).Error; err != nil {
 				return err
@@ -51,10 +48,10 @@ func UpdateProfile(db *gorm.DB) fiber.Handler {
 				return err
 			}
 
-			// Handle profile based on role
+			// role based
 			switch input.Role {
 			case "Provider":
-				// Delete customer profile if exists
+
 				if err := tx.Where("user_id = ?", userID).Delete(&models.CustomerProfile{}).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 					return err
 				}
@@ -111,8 +108,6 @@ func UpdateProfile(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// GetProfile retrieves the user's profile information
-// GET /profile/details
 func GetProfile(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userID, ok := c.Locals("userID").(uint)
@@ -166,8 +161,6 @@ func GetProfile(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// PutProfile allows admin or user to update a profile by its ID (like service PUT)
-// PUT /profile/:id
 func PutProfile(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		idStr := c.Params("id")

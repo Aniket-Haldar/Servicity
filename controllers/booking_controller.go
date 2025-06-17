@@ -17,13 +17,11 @@ func CreateBooking(db *gorm.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		// Look up the service to get the correct provider
 		var service models.Service
 		if err := db.First(&service, booking.ServiceID).Error; err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "Invalid service ID"})
 		}
-		booking.ProviderID = service.ProviderID // <-- SET PROVIDER ID HERE
-
+		booking.ProviderID = service.ProviderID
 		if booking.BookingTime.IsZero() {
 			booking.BookingTime = time.Now()
 		}
@@ -37,7 +35,7 @@ func CreateBooking(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// GET /booking
+// customer , provider
 func GetBookings(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var bookings []models.Booking
@@ -48,7 +46,7 @@ func GetBookings(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// GET /booking/:id
+// particular id
 func GetBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -66,7 +64,7 @@ func GetBooking(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// PATCH /booking/:id
+// update (provider or customer)
 func UpdateBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -91,7 +89,7 @@ func UpdateBooking(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// DELETE /booking/:id
+// delete (only for provider or admin)
 func DeleteBooking(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")

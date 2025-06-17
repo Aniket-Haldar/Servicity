@@ -1,20 +1,20 @@
-// Helper to get cookie by name
+
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-// API Base URL
+
 const API_BASE_URL = 'http://localhost:3000';
-let isAdmin = false; // Set based on user role after login
+let isAdmin = false; 
 
 // DOM Elements
 const servicesContainer = document.getElementById('services-container');
 const searchInput = document.getElementById('service-search');
 const searchBtn = document.getElementById('search-btn');
 
-// Mobile Navigation Toggle
+
 document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.querySelector('.nav-links')?.classList.toggle('active');
 });
@@ -31,13 +31,13 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 top: targetElement.offsetTop - 70,
                 behavior: 'smooth'
             });
-            // Close mobile menu if open
+     
             document.querySelector('.nav-links')?.classList.remove('active');
         }
     });
 });
 
-// Sticky Navigation on Scroll
+
 window.addEventListener('scroll', function() {
     const navbar = document.querySelector('.navbar');
     if (navbar) {
@@ -47,10 +47,10 @@ window.addEventListener('scroll', function() {
     }
 });
 
-// Fetch and Display Services (No Authorization Needed)
+
 async function fetchAndDisplayServices(searchQuery = '') {
     try {
-        // Show loading state
+      
         servicesContainer.innerHTML = `
             <div class="loading-spinner">
                 <div class="spinner"></div>
@@ -58,7 +58,7 @@ async function fetchAndDisplayServices(searchQuery = '') {
             </div>
         `;
 
-        // Build URL with optional search query
+
         const url = `${API_BASE_URL}/services${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`;
         const response = await fetch(url);
 
@@ -90,7 +90,7 @@ async function fetchAndDisplayServices(searchQuery = '') {
             return;
         }
 
-        // Render services
+     
         renderServices(services);
 
     } catch (error) {
@@ -104,7 +104,7 @@ async function fetchAndDisplayServices(searchQuery = '') {
         document.getElementById('retry-btn')?.addEventListener('click', () => fetchAndDisplayServices());
     }
 }
-// Render Services to DOM
+
 function renderServices(services) {
     services.forEach(service => {
         const serviceCard = document.createElement('div');
@@ -122,11 +122,11 @@ function renderServices(services) {
         servicesContainer.appendChild(serviceCard);
     });
 
-    // Add event listeners to interactive elements
+    
     setupServiceInteractions();
 }
 
-// Setup Event Listeners for Service Actions
+
 function setupServiceInteractions() {
     // Book Service
     document.querySelectorAll('.book-btn').forEach(button => {
@@ -149,7 +149,7 @@ function setupServiceInteractions() {
     }
 }
 
-// Book Service (Requires Authorization)
+
 async function bookService(serviceId) {
     const token = localStorage.getItem('token') || getCookie('token');
     if (!token) {
@@ -183,7 +183,6 @@ async function bookService(serviceId) {
     }
 }
 
-// Delete Service (Admin Only)
 async function deleteService(serviceId) {
     const token = localStorage.getItem('token') || getCookie('token');
     if (!token) {
@@ -204,7 +203,7 @@ async function deleteService(serviceId) {
         }
 
         alert('Service deleted successfully');
-        fetchAndDisplayServices(); // Refresh the list
+        fetchAndDisplayServices(); 
 
     } catch (error) {
         console.error('Delete failed:', error);
@@ -223,7 +222,7 @@ searchInput?.addEventListener('keypress', (e) => {
     }
 });
 
-// Dashboard Role-based Redirect
+
 document.getElementById('dashboard-link')?.addEventListener('click', async function(e) {
     e.preventDefault();
     const token = localStorage.getItem('token') || getCookie('token');
@@ -247,7 +246,7 @@ document.getElementById('dashboard-link')?.addEventListener('click', async funct
         alert('Error determining dashboard: ' + err.message);
     }
 });
-// Check Auth Status (For UI Updates)
+
 async function checkAuthStatus() {
     const token = localStorage.getItem('token') || getCookie('token');
     if (!token) return false;
@@ -265,17 +264,17 @@ async function checkAuthStatus() {
         const data = await response.json();
 
         if (data.name) {
-            // Update UI for logged-in user
+
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('google-login').style.display = 'none';
             document.querySelector('.user-name').textContent = data.name;
 
-            // Set isAdmin if role is admin/provider
+
             if (data.role && data.role.toLowerCase() === 'admin') {
                 isAdmin = true;
             }
             if (data.role && data.role.toLowerCase() === 'provider') {
-                isAdmin = true; // If you want providers to have admin-like privileges
+                isAdmin = true; 
             }
             if (!data.name) {
                 window.location.href = '/onboarding';
@@ -289,34 +288,33 @@ async function checkAuthStatus() {
     }
 }
 
-// Profile Dropdown & Auth
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load services immediately
+
     fetchAndDisplayServices();
 
-    // Check auth status for UI updates
+
     await checkAuthStatus();
 
-    // Set up profile dropdown if logged in
+
     document.getElementById('profile-icon')?.addEventListener('click', function(e) {
         e.preventDefault();
         document.getElementById('auth-dropdown')?.classList.toggle('show');
     });
 
-    // Close dropdown when clicking outside
+
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.profile-dropdown')) {
             document.getElementById('auth-dropdown')?.classList.remove('show');
         }
     });
 
-    // Google OAuth handler
+
     document.getElementById('google-login')?.addEventListener('click', function(e) {
         e.preventDefault();
         window.location.href = `${API_BASE_URL}/auth/google/login`;
     });
 
-    // Logout handler
+ 
     document.getElementById('logout-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('token');

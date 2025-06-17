@@ -16,12 +16,12 @@ func CreateService(db *gorm.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		// Get provider ID from JWT/session (set by your authentication middleware)
+		// Get provider ID from JWT/session
 		userID, ok := c.Locals("userID").(uint)
 		if !ok || userID == 0 {
 			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 		}
-		service.ProviderID = userID // Force set provider_id
+		service.ProviderID = userID
 
 		if err := db.Create(&service).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -38,7 +38,6 @@ func CreateService(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// GetServices returns all services with all fields (including provider_id)
 func GetServices(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var services []models.Service
@@ -49,7 +48,6 @@ func GetServices(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// FindService looks up a service by id
 func FindService(db *gorm.DB, id int, service *models.Service) error {
 	if id == 0 {
 		return errors.New("ID must not be zero")
@@ -60,7 +58,6 @@ func FindService(db *gorm.DB, id int, service *models.Service) error {
 	return nil
 }
 
-// GetService returns a single service by id
 func GetService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -80,7 +77,6 @@ func GetService(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// UpdateService updates a service (only fields provided in the body)
 func UpdateService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -109,7 +105,6 @@ func UpdateService(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// DeleteService deletes a service by id
 func DeleteService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")

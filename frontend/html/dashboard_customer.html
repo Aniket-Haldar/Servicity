@@ -113,7 +113,26 @@
             </form>
         </div>
     </div>
+    <!-- You can add a section for all your reviews if you want -->
+    <!--
+    <section class="dashboard-section" id="reviews">
+        <h2><i class="fa fa-star"></i> My Reviews</h2>
+        <div id="customer-reviews-container"></div>
+    </section>
+    -->
 
+    <script src="../js/reviews.js"></script>
     <script src="../js/dashboard_customer.js"></script>
+    <script>
+    // Example: Display stars on bookings (depends on your backend returning `rating` or `review`)
+    function renderStars(rating) {
+        rating = Number(rating) || 0;
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            stars += `<span style="color:#f1c40f">${i <= rating ? '★' : '☆'}</span>`;
+        }
+        return stars;
+    }
+    </script>
 </body>
 </html>
