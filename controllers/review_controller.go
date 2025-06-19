@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// POST /reviews
 func CreateReview(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var review models.Review
@@ -17,7 +16,6 @@ func CreateReview(db *gorm.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		// Basic validation
 		if review.CustomerID == 0 || review.ProviderID == 0 || review.Rating < 1 || review.Rating > 5 {
 			return c.Status(400).JSON(fiber.Map{"error": "Missing or invalid fields"})
 		}
@@ -29,7 +27,6 @@ func CreateReview(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// GET /reviews
 func GetAllReviews(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var reviews []models.Review
@@ -40,7 +37,6 @@ func GetAllReviews(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// GET /reviews/:id
 func GetReview(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -57,24 +53,28 @@ func GetReview(db *gorm.DB) fiber.Handler {
 		return c.JSON(review)
 	}
 }
-
-// GET /providers/:id/reviews
 func GetProviderReviews(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		idStr := c.Params("id")
+		idStr := c.Query("provider_id")
+		if idStr == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "Missing provider_id"})
+		}
 		providerID, err := strconv.Atoi(idStr)
 		if err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "Invalid provider ID"})
 		}
 		var reviews []models.Review
-		if err := db.Where("provider_id = ?", providerID).Find(&reviews).Error; err != nil {
+		if err := db.
+			Preload("Customer").
+			Preload("Service").
+			Where("provider_id = ?", providerID).
+			Find(&reviews).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 		return c.JSON(reviews)
 	}
 }
 
-// GET /customers/:id/reviews
 func GetCustomerReviews(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		idStr := c.Params("id")
@@ -89,8 +89,37 @@ func GetCustomerReviews(db *gorm.DB) fiber.Handler {
 		return c.JSON(reviews)
 	}
 }
+func GetReviewByBookingAndCustomer(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		bookingIDStr := c.Query("booking_id")
+		customerIDStr := c.Query("customer_id")
 
-// PATCH /reviews/:id
+		if bookingIDStr == "" || customerIDStr == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "booking_id and customer_id are required"})
+		}
+
+		bookingID, err := strconv.Atoi(bookingIDStr)
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid booking_id"})
+		}
+
+		customerID, err := strconv.Atoi(customerIDStr)
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid customer_id"})
+		}
+
+		var review models.Review
+		if err := db.Where("booking_id = ? AND customer_id = ?", bookingID, customerID).First(&review).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.Status(404).JSON(fiber.Map{"error": "Review not found"})
+			}
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		return c.JSON(review)
+	}
+}
+
 func UpdateReview(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")
@@ -115,7 +144,6 @@ func UpdateReview(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// DELETE /reviews/:id
 func DeleteReview(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")

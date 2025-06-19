@@ -117,7 +117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const provider = await providerResp.json();
                         console.log(provider);
                         console.log(providerResp);
-                        // Use the correct property for name, e.g., provider.Name or provider.name
                         providerName = provider.Name || provider.name || provider.username || 'Professional';
                     }
                 } catch (err) {

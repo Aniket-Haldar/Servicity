@@ -25,7 +25,14 @@ function formatDate(dateString) {
         return "Unknown";
     }
 }
-
+function renderStars(rating) {
+    rating = Number(rating) || 0;
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        stars += `<span style="color:#f1c40f">${i <= rating ? '★' : '☆'}</span>`;
+    }
+    return stars;
+}
 async function showAuthUI() {
     const token = getCookie('token');
     const userInfo = document.getElementById('user-info');
@@ -101,6 +108,8 @@ class ProviderDashboard {
             this.fetchProviderBookings()
         ]);
         this.setupEventListeners();
+
+        renderProviderReviews(this.providerId, 'provider-reviews-container');
     }
 
     async fetchProviderId() {
@@ -115,7 +124,7 @@ class ProviderDashboard {
             });
             if (!res.ok) throw new Error('Failed to fetch profile');
             const data = await res.json();
-            // The providerId comes from the nested profile object (see your screenshot)
+    
             if (data.profile && (data.profile.ID || data.profile.id || data.profile.UserID)) {
                 this.providerId = data.profile.UserID;
             } else {
@@ -299,75 +308,85 @@ class ProviderDashboard {
         document.getElementById('service-form').reset();
     }
 
-    async fetchProviderBookings() {
-        if (!this.providerId) return;
-        try {
-            const res = await fetch(`${API_BASE_URL}/booking`);
-            if (!res.ok) throw new Error('Failed to fetch bookings');
-            let bookings = await res.json();
-            bookings = bookings.map(b => ({
-                id: b.id || b.ID,
-                service_id: b.service_id || b.ServiceID,
-                provider_id: b.provider_id || b.ProviderID,
-                booking_time: b.booking_time || b.BookingTime,
-                status: b.status || b.Status,
-                email: b.email || b.Email,
-                phone: b.phone || b.Phone,
-                address: b.address || b.Address,
-                special_notes: b.special_notes || b.SpecialNotes
-            }));
-            const ownBookings = bookings.filter(b => String(b.provider_id) === String(this.providerId));
-            this.renderProviderBookings(ownBookings);
-        } catch (error) {
-            document.getElementById('provider-bookings').innerHTML =
-                '<div class="error">Failed to load bookings. Please refresh.</div>';
-        }
-    }
-
-    renderProviderBookings(bookings) {
-        const container = document.getElementById('provider-bookings');
-        if (!container) return;
-        container.innerHTML = '';
-        if (!bookings.length) {
-            container.innerHTML = '<p class="no-data">No bookings found yet.</p>';
-            return;
-        }
-        bookings.forEach(booking => {
-            const card = document.createElement('div');
-            card.className = 'booking-card';
-            card.innerHTML = `
-                <div class="booking-info">
-                    <div><b>${escapeHtml(booking.email || 'Customer')}</b> booked Service #${escapeHtml(booking.service_id)}</div>
-                    <div>Date: ${formatDate(booking.booking_time)}</div>
-                    <div>Status: <span class="status-${escapeHtml(booking.status)}">${escapeHtml(booking.status)}</span></div>
-                    ${booking.address ? `<div>Address: ${escapeHtml(booking.address)}</div>` : ''}
-                    ${booking.special_notes ? `<div>Notes: ${escapeHtml(booking.special_notes)}</div>` : ''}
-                </div>
-                <div class="booking-actions"></div>
-            `;
-            const actions = card.querySelector('.booking-actions');
-            if (booking.status === 'pending') {
-                const acceptBtn = document.createElement('button');
-                acceptBtn.className = 'btn btn-success';
-                acceptBtn.textContent = 'Accept';
-                acceptBtn.onclick = () => this.respondBooking(booking.id, 'accepted');
-                const rejectBtn = document.createElement('button');
-                rejectBtn.className = 'btn btn-secondary';
-                rejectBtn.textContent = 'Reject';
-                rejectBtn.onclick = () => this.respondBooking(booking.id, 'rejected');
-                actions.appendChild(acceptBtn);
-                actions.appendChild(rejectBtn);
-            }
-            if (booking.status === 'accepted') {
-                const completeBtn = document.createElement('button');
-                completeBtn.className = 'btn btn-complete';
-                completeBtn.textContent = 'Mark Completed';
-                completeBtn.onclick = () => this.respondBooking(booking.id, 'completed');
-                actions.appendChild(completeBtn);
-            }
-            container.appendChild(card);
+   async fetchProviderBookings() {
+    const token = getCookie('token');
+    if (!this.providerId) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/booking/provider`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
         });
+        if (!res.ok) throw new Error('Failed to fetch bookings');
+        let bookings = await res.json();
+   
+        
+        bookings = bookings.map(b => ({
+            id: b.id || b.ID,
+            service_id: b.service_id || b.ServiceID,
+            provider_id: b.provider_id || b.ProviderID,
+            booking_time: b.booking_time || b.BookingTime,
+            status: b.status || b.Status,
+            email: b.email || b.Email,
+            phone: b.phone || b.Phone,
+            address: b.address || b.Address,
+            special_notes: b.special_notes || b.SpecialNotes,
+            service: b.Service || b.service 
+        }));
+        const ownBookings = bookings.filter(b => String(b.provider_id) === String(this.providerId));
+        this.renderProviderBookings(ownBookings);
+    } catch (error) {
+        document.getElementById('provider-bookings').innerHTML =
+            '<div class="error">Failed to load bookings. Please refresh.</div>';
     }
+}
+
+renderProviderBookings(bookings) {
+    const container = document.getElementById('provider-bookings');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!bookings.length) {
+        container.innerHTML = '<p class="no-data">No bookings found yet.</p>';
+        return;
+    }
+    bookings.forEach(booking => {
+        const card = document.createElement('div');
+        card.className = 'booking-card';
+        card.innerHTML = `
+            <div class="booking-info">
+                <div><b>${escapeHtml(booking.email || 'Customer')}</b> booked ${escapeHtml(booking.service?.name || booking.service?.Name || 'Service')}</div>
+                <div>Date: ${formatDate(booking.booking_time)}</div>
+                <div>Status: <span class="status-${escapeHtml(booking.status)}">${escapeHtml(booking.status)}</span></div>
+                ${booking.address ? `<div>Address: ${escapeHtml(booking.address)}</div>` : ''}
+                ${booking.special_notes ? `<div>Notes: ${escapeHtml(booking.special_notes)}</div>` : ''}
+            </div>
+            <div class="booking-actions"></div>
+        `;
+        const actions = card.querySelector('.booking-actions');
+        if (booking.status === 'pending') {
+            const acceptBtn = document.createElement('button');
+            acceptBtn.className = 'btn btn-success';
+            acceptBtn.textContent = 'Accept';
+            acceptBtn.onclick = () => this.respondBooking(booking.id, 'accepted');
+            const rejectBtn = document.createElement('button');
+            rejectBtn.className = 'btn btn-secondary';
+            rejectBtn.textContent = 'Reject';
+            rejectBtn.onclick = () => this.respondBooking(booking.id, 'rejected');
+            actions.appendChild(acceptBtn);
+            actions.appendChild(rejectBtn);
+        }
+        if (booking.status === 'accepted') {
+            const completeBtn = document.createElement('button');
+            completeBtn.className = 'btn btn-complete';
+            completeBtn.textContent = 'Mark Completed';
+            completeBtn.onclick = () => this.respondBooking(booking.id, 'completed');
+            actions.appendChild(completeBtn);
+        }
+        container.appendChild(card);
+    });
+}
 
     async respondBooking(bookingId, status) {
         const token = getCookie('token');
@@ -401,12 +420,70 @@ class ProviderDashboard {
     }
 }
 
-// Hamburger menu (mobile)
+
+
+async function fetchProviderReviews(providerId) {
+    if (!providerId) return [];
+    try {
+        const res = await fetch(`${API_BASE_URL}/reviews/provider?provider_id=${providerId}`);
+        if (!res.ok) return [];
+        let reviews = await res.json();
+        reviews = Array.isArray(reviews) ? reviews : [reviews];
+        return reviews.map(r => ({
+            id: r.id ?? r.ID,
+            rating: r.rating ?? r.Rating,
+            comment: r.comment ?? r.Comment ?? '',
+            createdAt: r.createdAt ?? r.CreatedAt,
+            booking_id: r.booking_id ?? r.BookingID ?? r.bookingId,
+            customer_id: r.customer_id ?? r.CustomerID ?? r.customerId,
+            service_id: r.service_id ?? r.ServiceID ?? r.serviceId,
+            customer: r.Customer ? (r.Customer.name || r.Customer.Name || 'Customer') : (r.customer_name || 'Customer'),
+            service: r.Service ? (r.Service.name || r.Service.Name || 'Service') : (r.service_name || 'Service'),
+        }));
+    } catch (e) {
+        return [];
+    }
+}
+
+function renderProviderReviews(providerId, containerId = 'provider-reviews-container') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading your reviews...</div>';
+
+    fetchProviderReviews(providerId).then(reviews => {
+        if (!reviews.length) {
+            container.innerHTML = '<p class="no-data">No reviews yet for your services.</p>';
+            return;
+        }
+        container.innerHTML = '';
+        reviews.forEach(review => {
+            const card = document.createElement('div');
+            card.className = 'review-card';
+            card.innerHTML = `
+                <div class="review-header">
+                    <span class="review-stars">${renderStars(review.rating)}</span>
+                    <span class="review-date">${formatDate(review.createdAt)}</span>
+                </div>
+                <div class="review-body">
+                    <div class="review-service"><b>Service:</b> ${escapeHtml(review.service)}</div>
+                    <div class="review-comment"><div>Comment: </div>${escapeHtml(review.comment)}</div>
+                </div>
+                <div class="review-footer">
+                    <span class="review-customer"><b>By:</b> ${escapeHtml(review.customer)}</span>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    });
+}
+
+
 document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.getElementById('nav-links')?.classList.toggle('active');
 });
 
-// Initialize the dashboard
+
+
 document.addEventListener('DOMContentLoaded', () => {
     new ProviderDashboard();
     showAuthUI();

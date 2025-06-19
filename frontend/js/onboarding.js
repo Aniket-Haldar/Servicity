@@ -8,7 +8,6 @@ function getCookie(name) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle between customer/provider fields
     const roleInputs = document.querySelectorAll('input[name="role"]');
     const providerFields = document.getElementById('provider-fields');
     const customerFields = document.getElementById('customer-fields');
@@ -18,30 +17,29 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.value === 'Provider') {
                 providerFields.style.display = 'block';
                 customerFields.style.display = 'none';
-                
-                // Make provider fields required
+            
                 document.getElementById('profession').required = true;
                 document.getElementById('pincode').required = true;
                 document.getElementById('pricing').required = true;
                 
-                // Make customer fields not required
+            
                 document.getElementById('address').required = false;
             } else {
                 providerFields.style.display = 'none';
                 customerFields.style.display = 'block';
                 
-                // Make provider fields not required
+ 
                 document.getElementById('profession').required = false;
                 document.getElementById('pincode').required = false;
                 document.getElementById('pricing').required = false;
                 
-                // Make customer fields required
+             
                 document.getElementById('address').required = true;
             }
         });
     });
 
-    // Form submission
+
     const form = document.getElementById('onboarding-form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -52,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             role: document.querySelector('input[name="role"]:checked').value
         };
 
-        // Add role-specific fields
+        //role specific
         if (formData.role === 'Provider') {
             formData.profession = document.getElementById('profession').value;
             formData.pincode = document.getElementById('pincode').value;
@@ -75,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (response.ok) {
-        window.location.href = 'index.html'; // Redirect to home after successful onboarding
+        window.location.href = 'index.html'; 
     } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error || 'Failed to update profile'}`);
@@ -87,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     });
 
-    // Check if user is logged in
+    //user logged in or not
     const token=getCookie('token');
     if (!token) {
         window.location.href = 'localhost:3000/auth/google/login';

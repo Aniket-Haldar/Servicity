@@ -63,7 +63,7 @@
         </div>
     </main>
 
-    <!-- Edit Booking Modal -->
+
     <div class="modal" id="edit-booking-modal" style="display:none;">
         <div class="modal-content">
             <span class="close-btn" id="close-edit-booking">&times;</span>
@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
+  
     <div class="modal" id="edit-profile-modal" style="display:none;">
         <div class="modal-content">
             <span class="close-btn" id="close-edit-profile">&times;</span>
@@ -113,18 +113,46 @@
             </form>
         </div>
     </div>
-    <!-- You can add a section for all your reviews if you want -->
-    <!--
-    <section class="dashboard-section" id="reviews">
-        <h2><i class="fa fa-star"></i> My Reviews</h2>
-        <div id="customer-reviews-container"></div>
-    </section>
-    -->
+
+    <!-- Review Modal -->
+    <div class="modal" id="review-modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" id="close-review-modal">&times;</span>
+            <h2 id="review-modal-title">Leave a Review</h2>
+            <form id="review-form" style="display:none;">
+                <input type="hidden" id="review-booking-id">
+                <input type="hidden" id="review-service-id">
+                <input type="hidden" id="review-customer-id">
+                <input type="hidden" id="review-provider-id">
+                <div class="form-group">
+                    <label for="review-rating">Rating</label>
+                    <select id="review-rating" required>
+                        <option value="">Select...</option>
+                        <option value="5">★★★★★</option>
+                        <option value="4">★★★★☆</option>
+                        <option value="3">★★★☆☆</option>
+                        <option value="2">★★☆☆☆</option>
+                        <option value="1">★☆☆☆☆</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="review-text">Review</label>
+                    <textarea id="review-text" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Review</button>
+            </form>
+            <div id="existing-review" style="display:none;">
+                <div><b>Your Review:</b></div>
+                <div id="existing-review-rating"></div>
+                <div id="existing-review-text"></div>
+                <button id="edit-review-btn" class="btn btn-outline" style="margin-top:12px;">Edit Review</button>
+            </div>
+        </div>
+    </div>
 
     <script src="../js/reviews.js"></script>
     <script src="../js/dashboard_customer.js"></script>
     <script>
-    // Example: Display stars on bookings (depends on your backend returning `rating` or `review`)
     function renderStars(rating) {
         rating = Number(rating) || 0;
         let stars = '';

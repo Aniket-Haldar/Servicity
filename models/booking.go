@@ -11,6 +11,7 @@ type Booking struct {
 	CustomerID   uint      `json:"customer_id"`
 	ProviderID   uint      `json:"provider_id"`
 	ServiceID    uint      `json:"service_id"`
+	Service      Service   `gorm:"foreignKey:ServiceID"`
 	BookingTime  time.Time `json:"booking_time"`
 	Status       string    `json:"status"`
 	Email        string    `json:"email"`

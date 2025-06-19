@@ -57,7 +57,7 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	result := db.Preload("CustomerProfile").Preload("ProviderProfile").First(&user, "email = ?", email)
 
 	if result.Error != nil {
-		// New user
+
 		user = models.User{
 			Email: email,
 			Role:  "customer", // default role
@@ -72,12 +72,12 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate JWT: " + err.Error())
 	}
 
-	// Set cookie with JWT token
+	//cookie proceess
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    jwtToken,
 		HTTPOnly: false,
-		Secure:   false, // set true in production
+		Secure:   false,
 		SameSite: "Lax",
 		Path:     "/",
 		MaxAge:   86400,

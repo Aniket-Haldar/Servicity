@@ -9,7 +9,6 @@ function getCookie(name) {
 const API_BASE_URL = 'http://localhost:3000';
 let isAdmin = false; 
 
-// DOM Elements
 const servicesContainer = document.getElementById('services-container');
 const searchInput = document.getElementById('service-search');
 const searchBtn = document.getElementById('search-btn');
@@ -19,7 +18,7 @@ document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.querySelector('.nav-links')?.classList.toggle('active');
 });
 
-// Smooth Scrolling for Anchor Links
+
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
         e.preventDefault();
@@ -68,7 +67,7 @@ async function fetchAndDisplayServices(searchQuery = '') {
 
         let services = await response.json();
 
-        // Map fields to ensure frontend compatibility
+     
         services = services.map(service => ({
             id: service.id || service.ID,
             name: service.name || service.Name,
@@ -78,7 +77,7 @@ async function fetchAndDisplayServices(searchQuery = '') {
             provider_id: service.provider_id || service.ProviderID
         }));
 
-        // Clear loading state
+  
         servicesContainer.innerHTML = '';
 
         if (!services || services.length === 0) {
@@ -128,7 +127,7 @@ function renderServices(services) {
 
 
 function setupServiceInteractions() {
-    // Book Service
+
     document.querySelectorAll('.book-btn').forEach(button => {
         button.addEventListener('click', function() {
             const serviceId = this.getAttribute('data-service-id');
@@ -136,7 +135,6 @@ function setupServiceInteractions() {
         });
     });
 
-    // Delete Service (Admin only)
     if (isAdmin) {
         document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', function() {
@@ -211,7 +209,6 @@ async function deleteService(serviceId) {
     }
 }
 
-// Search Functionality
 searchBtn?.addEventListener('click', () => {
     fetchAndDisplayServices(searchInput.value.trim());
 });

@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreateService creates a new service, always setting ProviderID from the authenticated user context
 func CreateService(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var service models.Service
@@ -16,7 +15,6 @@ func CreateService(db *gorm.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		// Get provider ID from JWT/session
 		userID, ok := c.Locals("userID").(uint)
 		if !ok || userID == 0 {
 			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})

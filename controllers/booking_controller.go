@@ -38,8 +38,27 @@ func CreateBooking(db *gorm.DB) fiber.Handler {
 // customer , provider
 func GetBookings(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		userID := c.Locals("userID")
+		if userID == nil {
+			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+		}
 		var bookings []models.Booking
-		if err := db.Find(&bookings).Error; err != nil {
+		if err := db.Where("customer_id = ?", userID).Find(&bookings).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(bookings)
+	}
+}
+func GetProviderBookings(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userID := c.Locals("userID")
+		if userID == nil {
+			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+		}
+		var bookings []models.Booking
+		if err := db.Preload("Service").
+			Where("provider_id = ?", userID).
+			Find(&bookings).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 		return c.JSON(bookings)

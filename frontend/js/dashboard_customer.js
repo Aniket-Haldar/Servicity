@@ -1,9 +1,9 @@
-// Mobile Navigation Toggle
+
 document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.querySelector('.nav-links')?.classList.toggle('active');
 });
 
-// Sticky Navigation on Scroll
+
 window.addEventListener('scroll', function() {
     const navbar = document.querySelector('.navbar');
     if (navbar) {
@@ -23,7 +23,7 @@ function getCookie(name) {
     return null;
 }
 
-// JWT Helper
+
 function getToken() {
     return localStorage.getItem('token') || getCookie('token');
 }
@@ -35,15 +35,13 @@ function getBookingId(b) {
     return b.id !== undefined ? b.id : b.ID;
 }
 
-// Modal helpers
 function showModal(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.classList.add('show');
+    if (modal) modal.style.display = 'block';
 }
-
 function hideModal(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('show');
+    if (modal) modal.style.display = 'none';
 }
 
 function renderStatus(status) {
@@ -85,39 +83,40 @@ async function fetchAndDisplayBookings() {
         bookingsList.innerHTML = '';
 
         if (Array.isArray(data) && data.length) {
-         bookingsList.innerHTML = '';
-data.forEach(b => {
-    const bookingId = getBookingId(b);
+            bookingsList.innerHTML = '';
+            data.forEach(b => {
+                const bookingId = getBookingId(b);
 
-    // 1. Create booking card DOM element
-    const card = document.createElement('div');
-    card.className = "booking-item";
-    card.setAttribute("data-booking-id", bookingId);
+             
+                const card = document.createElement('div');
+                card.className = "booking-item";
+                card.setAttribute("data-booking-id", bookingId);
 
-    card.innerHTML = `
-        <div class="booking-header">${b.serviceName || b.service || "Service"}</div>
-        <div class="booking-meta">Date: ${b.booking_time ? new Date(b.booking_time).toLocaleString() : "Unknown"}</div>
-        <div class="booking-meta">Email: ${b.email || ''}</div>
-        <div class="booking-meta">Phone: ${b.phone || ''}</div>
-        <div class="booking-meta">Address: ${b.address || ''}</div>
-        <div>Status: ${renderStatus(b.status || "Pending")}</div>
-        <div class="booking-actions">
-            <button class="btn btn-outline edit-booking-btn" data-booking-id="${bookingId}">Edit</button>
-            <button class="btn btn-danger cancel-booking-btn" data-booking-id="${bookingId}">Cancel</button>
-        </div>
-    `;
-    bookingsList.appendChild(card);
+                card.innerHTML = `
+                    <div class="booking-header">${b.serviceName || b.service || "Service"}</div>
+                    <div class="booking-meta">Date: ${b.booking_time ? new Date(b.booking_time).toLocaleString() : "Unknown"}</div>
+                    <div class="booking-meta">Email: ${b.email || ''}</div>
+                    <div class="booking-meta">Phone: ${b.phone || ''}</div>
+                    <div class="booking-meta">Address: ${b.address || ''}</div>
+                    <div>Status: ${renderStatus(b.status || "Pending")}</div>
+                    <div class="booking-actions">
+                        <button class="btn btn-outline edit-booking-btn" data-booking-id="${bookingId}">Edit</button>
+                        <button class="btn btn-danger cancel-booking-btn" data-booking-id="${bookingId}">Cancel</button>
+                    </div>
+                `;
+                bookingsList.appendChild(card);
 
-
-    if (window.currentUser && window.currentUser.profile) {
-        const customerId = window.currentUser.profile.UserID;
-        
-        addReviewButtonToBooking(b, card.querySelector('.booking-actions'), customerId);
-        console.log
-    }
-});
-setupBookingActions(data);
-window.currentUser = data;
+            
+                if (window.currentUser && window.currentUser.profile) {
+                    const customerId = window.currentUser.profile.UserID || window.currentUser.profile.id || window.currentUser.profile.ID;
+                    addReviewButtonToBooking(
+                        b, 
+                        card.querySelector('.booking-actions'), 
+                        customerId
+                    );
+                }
+            });
+            setupBookingActions(data);
         } else {
             bookingsList.innerHTML = '<em>No bookings found.</em>';
         }
@@ -224,7 +223,7 @@ if (closeEditBooking) {
     closeEditBooking.addEventListener('click', () => hideModal('edit-booking-modal'));
 }
 
-//PUT /profile/:id
+// PUT /profile/:id
 let currentProfileId = null;
 
 async function fetchAndDisplayProfile() {
@@ -244,7 +243,6 @@ async function fetchAndDisplayProfile() {
     }
 
     try {
- 
         const url = `${API_BASE_URL}/profile/details`;
 
         const response = await fetch(url, {
@@ -258,7 +256,6 @@ async function fetchAndDisplayProfile() {
 
         currentProfileId = (data.profile && (data.profile.ID || data.profile.id)) || null;
 
-    
         const phone = (data.profile && (data.profile.Phone || data.profile.phone)) || data.phone || '';
         const address = (data.profile && (data.profile.Address || data.profile.address)) || data.address || '';
 
@@ -284,6 +281,9 @@ async function fetchAndDisplayProfile() {
 
             const userEmail = document.querySelector('.user-email');
             if (userEmail) userEmail.textContent = data.email || '';
+
+   
+            window.currentUser = { profile: data.profile || data, name: data.name || data.fullName };
 
             setupProfileEdit(data, phone, address);
         } else {
@@ -369,15 +369,13 @@ if (closeEditProfile) {
     closeEditProfile.addEventListener('click', () => hideModal('edit-profile-modal'));
 }
 
-
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        await Promise.all([
-            fetchAndDisplayBookings(),
-            fetchAndDisplayProfile()
-        ]);
+ 
+        await fetchAndDisplayProfile();
+        await fetchAndDisplayBookings();
 
-        
+
         const profileIcon = document.getElementById('profile-icon');
         if (profileIcon) {
             profileIcon.addEventListener('click', function(e) {
@@ -387,7 +385,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.profile-dropdown')) {
                 const authDropdown = document.getElementById('auth-dropdown');
@@ -395,7 +392,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        //Google OAuth handler
+        // Google OAuth handler
         const googleLogin = document.getElementById('google-login');
         if (googleLogin) {
             googleLogin.addEventListener('click', function(e) {
@@ -404,7 +401,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-   
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function(e) {

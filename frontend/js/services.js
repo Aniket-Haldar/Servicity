@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const categoryFilter = document.getElementById('categoryFilter');
     const loadingSpinner = document.getElementById('loading-spinner');
 
-    // Show loading state
+ 
     loadingSpinner.style.display = 'flex';
     servicesGrid.innerHTML = `
         <div class="service-card skeleton">
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
     `;
 
-    // Fetch services from backend
+
     async function fetchServices() {
         try {
             const response = await fetch(`${API_BASE_URL}/services`, {
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Render services with proper booking links
+  
    function renderServices(services) {
     if (services.length === 0) {
         servicesGrid.innerHTML = `
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     `).join('');
 }
 
-    // Filter services
+
     function filterServices() {
         const searchTerm = searchInput.value.toLowerCase();
         const category = categoryFilter.value;
@@ -110,12 +110,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Initialize
     try {
         const services = await fetchServices();
         renderServices(services);
-        
-        // Event listeners
+
         searchInput.addEventListener('input', filterServices);
         categoryFilter.addEventListener('change', filterServices);
     } catch (error) {

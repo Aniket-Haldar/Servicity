@@ -28,14 +28,18 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 
 	booking := app.Group("/booking")
 	booking.Post("/", controllers.CreateBooking(db))
-	booking.Get("/", controllers.GetBookings(db))
-	booking.Get("/:id", controllers.GetBooking(db))
+	booking.Get("/", middleware.RequireAuth, controllers.GetBookings(db))
+	booking.Get("/provider", middleware.RequireAuth, controllers.GetProviderBookings(db))
+	booking.Get("/:id", middleware.RequireAuth, controllers.GetBooking(db))
 	booking.Put("/:id", controllers.UpdateBooking(db))
 	booking.Delete("/:id", controllers.DeleteBooking(db))
 
 	review := app.Group("/reviews")
 	review.Post("/", controllers.CreateReview(db))
-	review.Get("/", controllers.GetAllReviews(db))
+
+	review.Get("/", controllers.GetReviewByBookingAndCustomer(db))
+	review.Get("/provider", controllers.GetProviderReviews(db))
+	review.Get("/all", controllers.GetAllReviews(db))
 	review.Get("/:id", controllers.GetReview(db))
 	review.Put("/:id", controllers.UpdateReview(db))
 	review.Delete("/:id", controllers.DeleteReview(db))
