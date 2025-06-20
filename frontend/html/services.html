@@ -3,55 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Services | Servicity</title>
+    <title>Servicity | Discover Services</title>
+    <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/services.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="page-wrapper">
-        <header class="services-header">
-            <div class="hero-content">
-                <h1>Discover Premium Services</h1>
-                <p class="subtitle">Handpicked professionals for your every need</p>
-                <div class="search-filter">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Find services...">
-                    </div>
-                    <select id="categoryFilter">
-                        <option value="all">All Categories</option>
-                        <option value="cleaning">Home Cleaning</option>
-                        <option value="repair">Repairs</option>
-                        <option value="beauty">Beauty</option>
-                        <option value="moving">Moving Help</option>
-                    </select>
-                </div>
-            </div>
-        </header>
 
-        <main class="main-content">
-            <div class="services-grid" id="servicesGrid">
-             
-                <div class="service-card skeleton">
-                    <div class="service-image"></div>
-                    <div class="service-content">
-                        <div class="skeleton-line" style="width: 70%"></div>
-                        <div class="skeleton-line" style="width: 90%"></div>
-                        <div class="skeleton-line" style="width: 60%"></div>
-                        <div class="skeleton-btn"></div>
+<nav class="navbar">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <img src="../images/logo.png" alt="Servicity">
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="services.html" class="nav-link active">Services</a>
+            <a href="about.html" class="nav-link">About</a>
+            <a href="contact.html" class="nav-link">Contact</a>
+            <a href="#" id="dashboard-link" class="nav-link">Dashboard</a>
+            <div class="profile-dropdown">
+                <a href="#" id="profile-icon">
+                    <img src="../images/profile.svg" alt="Profile" class="profile-icon">
+                    <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
+                </a>
+                <div id="auth-dropdown" class="dropdown-menu">
+                    <button id="google-login" class="oauth-btn">
+                        <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
+                        <span>Continue with Google</span>
+                    </button>
+                    <div id="user-info" style="display: none;">
+                        <div class="user-email"></div>
+                        <button id="logout-btn" class="logout-btn">Log Out</button>
                     </div>
                 </div>
-             
             </div>
-        </main>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
     </div>
+</nav>
 
-    <div id="loading-spinner">
-        <div class="spinner"></div>
-        <p>Loading services...</p>
+<section class="services-hero" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; padding: 70px 0 40px 0; margin-top: 70px;">
+    <div class="container">
+        <h1 class="section-title" style="color: #fff;">Discover Premium Services</h1>
+        <p style="text-align: center; max-width: 600px; margin: 0 auto 2rem; color: #e0eaff;">
+            Handpicked professionals for your every need
+        </p>
+        <div class="search-filter" style="display: flex; gap: 1rem; justify-content: center;">
+            <div class="search-box" style="flex:2; min-width:220px; position:relative;">
+                <i class="fas fa-search" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#828282;"></i>
+                <input type="text" id="searchInput" placeholder="Find services..." style="width:100%;padding:0.7rem 1.5rem 0.7rem 42px;border-radius:8px;border:1px solid #eee;">
+            </div>
+            <select id="categoryFilter" style="min-width:170px; padding:0.7rem 1rem; border-radius:8px;">
+                <option value="all">All Categories</option>
+                <option value="cleaning">Home Cleaning</option>
+                <option value="repair">Repairs</option>
+                <option value="beauty">Beauty</option>
+                <option value="moving">Moving Help</option>
+            </select>
+        </div>
     </div>
+</section>
 
-    <script src="../js/services.js"></script>
+
+<section class="services">
+    <div class="container">
+        <div class="services-grid" id="servicesGrid">
+            <div class="service-card skeleton">
+                <div class="service-img"></div>
+                <div class="service-info">
+                    <div class="skeleton-line" style="width: 70%"></div>
+                    <div class="skeleton-line" style="width: 90%"></div>
+                    <div class="skeleton-line" style="width: 60%"></div>
+                    <div class="skeleton-btn"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<div id="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading services...</p>
+</div>
+
+
+<div class="service-modal" id="serviceModal">
+    <div class="service-modal-content" id="serviceModalContent">
+        <span class="close-modal" id="closeModal">&times;</span>
+  
+    </div>
+</div>
+
+<script src="../js/services.js"></script>
+
 </body>
 </html>

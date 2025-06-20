@@ -119,7 +119,33 @@ func GetReviewByBookingAndCustomer(db *gorm.DB) fiber.Handler {
 		return c.JSON(review)
 	}
 }
+func GetServiceReviews(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		serviceIDStr := c.Query("service_id")
 
+		if serviceIDStr == "" {
+
+			return c.Status(400).JSON(fiber.Map{"error": "Missing service_id"})
+		}
+		serviceID, err := strconv.Atoi(serviceIDStr)
+		if err != nil {
+
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid service_id"})
+		}
+		var reviews []models.Review
+		dbQuery := db.
+			Preload("Customer").
+			Preload("Service").
+			Where("service_id = ?", serviceID)
+
+		if err := dbQuery.Find(&reviews).Error; err != nil {
+
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		return c.JSON(reviews)
+	}
+}
 func UpdateReview(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := c.ParamsInt("id")

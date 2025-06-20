@@ -306,7 +306,36 @@ body {
   margin-bottom: 1rem;
   color: var(--accent);
 }
-
+#serviceModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+#serviceModal.active {
+  display: flex !important;
+}
+#serviceModalContent {
+  background: #fff;
+  padding: 2em;
+  border-radius: 12px;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  min-width: 320px;
+}
+.close-modal {
+  position: absolute;
+  right: 1em;
+  top: 1em;
+  font-size: 2em;
+  cursor: pointer;
+  color: #aaa;
+}
+.close-modal:hover { color: #000; }
 /* Responsive Design */
 @media (max-width: 992px) {
   .services-header {
