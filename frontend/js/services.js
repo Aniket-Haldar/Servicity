@@ -13,7 +13,6 @@ function getAverageRating(reviews) {
     return sum / reviews.length;
 }
 
-
 function renderStars(rating) {
     rating = Number(rating) || 0;
     const fullStars = Math.floor(rating);
@@ -23,8 +22,6 @@ function renderStars(rating) {
     stars = stars.padEnd(5, '☆');
     return stars;
 }
-
-
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe.toString()
@@ -51,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (dashboardLink) {
         dashboardLink.addEventListener('click', function (e) {
             e.preventDefault();
-            // Check user token & role, then redirect to proper dashboard
+         
             const token = getCookie('token');
             if (!token) {
                 window.location.href = `${API_BASE_URL}/auth/google/login`;
@@ -314,8 +311,7 @@ function showServiceModal(service, reviews = []) {
         if (e.key === "Escape") closeServiceModal();
     }
 
-    async function renderServices(services) {
-
+async function renderServices(services) {
     servicesGrid.innerHTML = services.map(service => `
         <div class="service-card" data-category="${service.Category ? service.Category.toLowerCase() : 'other'}" data-id="${service.ID || service.id}">
             <div class="service-image" style="background-image: url('${service.image_url || '../images/default-service.jpg'}')"></div>
@@ -333,26 +329,26 @@ function showServiceModal(service, reviews = []) {
         </div>
     `).join('');
 
-  
+
     for (const service of services) {
         try {
             const res = await fetch(`${API_BASE_URL}/reviews/service?service_id=${service.ID || service.id}`);
             const reviewsRaw = await res.json();
-   n
+       
             const reviews = Array.isArray(reviewsRaw) ? reviewsRaw.map(r => ({
-                rating: r.rating ?? r.Rating ?? 0
+                rating: r.Rating ?? r.rating ?? 0
             })) : [];
             const avg = getAverageRating(reviews);
             const count = reviews.length;
             document.getElementById(`avg-rating-${service.ID || service.id}`).innerHTML =
-                `${renderStars(avg.toFixed(1))} (${count})`;
+                `${renderStars(avg)} (${avg ? avg.toFixed(1) : '0'}) (${count})`;
         } catch (e) {
             document.getElementById(`avg-rating-${service.ID || service.id}`).innerHTML =
                 "☆☆☆☆☆ (0)";
         }
     }
 
-
+  
     document.querySelectorAll('.service-card').forEach(card => {
         card.addEventListener('click', async function (e) {
             if (e.target.classList.contains('book-btn')) return;
@@ -364,7 +360,9 @@ function showServiceModal(service, reviews = []) {
             }
         });
     });
+
 }
+
 
     function filterServices() {
         const searchTerm = searchInput.value.toLowerCase();
