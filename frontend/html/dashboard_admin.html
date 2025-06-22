@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>Servicity Admin Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/styles.css"><!-- Your main styles -->
-    <link rel="stylesheet" href="../css/dashboard_admin.css"><!-- Dashboard-specific -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/dashboard_admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script defer src="../js/dashboard_admin.js"></script>
 </head>
@@ -80,22 +80,28 @@
             </form>
             <ul id="categories-list"></ul>
         </div>
-        <div id="section-messages" class="dashboard-section">
-            <h2 class="section-title">Send Message</h2>
-            <form id="message-form">
-                <label>
-                    To:
-                    <select id="message-target">
-                        <option value="All">All Users</option>
-                        <option value="Provider">Providers</option>
-                        <option value="Customer">Customers</option>
-                    </select>
-                </label>
-                <textarea id="message-content" placeholder="Enter message..." required></textarea>
-                <button class="btn btn-primary" type="submit">Send</button>
-            </form>
-            <div id="message-status"></div>
-        </div>
+       <div id="section-messages" class="dashboard-section">
+    <h2 class="section-title">Send Message</h2>
+    <form id="message-form">
+        <label>
+            To:
+            <select id="message-target">
+                <option value="All">All Users</option>
+                <option value="Provider">Providers</option>
+                <option value="Customer">Customers</option>
+            </select>
+        </label>
+        <textarea id="message-content" placeholder="Enter message..." required></textarea>
+        <button class="btn btn-primary" type="submit">Send</button>
+    </form>
+    <div id="message-status"></div>
+
+    <!-- ADD THIS BLOCK BELOW THE FORM: -->
+    <div style="margin-top:2em;">
+        <h3>Sent Messages</h3>
+        <div id="sent-messages" style="max-height:300px;overflow:auto;"></div>
+    </div>
+</div>
     </section>
 </main>
 </body>

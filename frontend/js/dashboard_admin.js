@@ -31,7 +31,7 @@ async function checkAdminAuth() {
             return false;
         }
         const user = await res.json();
-      
+
         if (!user.role || user.role.toLowerCase() !== 'admin') {
             showAuthError("Access denied. Admins only.");
             return false;
@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) return;
 
-
     document.querySelectorAll('.sidebar-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
@@ -72,7 +71,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('section-' + section).classList.add('active');
         });
     });
-
 
     renderAnalytics();
 
@@ -85,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     renderUsers('Provider');
-
 
     renderCategories();
     document.getElementById('add-category-form').addEventListener('submit', function(e) {
@@ -106,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     });
-
 
     document.getElementById('categories-list').addEventListener('click', function(e) {
         if (e.target.tagName === "BUTTON") {
@@ -151,9 +147,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('message-status').textContent = `Message sent to ${target}`;
             setTimeout(() => document.getElementById('message-status').textContent = '', 2000);
             document.getElementById('message-form').reset();
+        
+            renderSentMessages();
         });
     });
 
+    renderSentMessages();
 
     document.getElementById('logout-btn').addEventListener('click', function(e) {
         e.preventDefault();
@@ -265,5 +264,43 @@ function renderCategories() {
         })
         .catch(() => {
             document.getElementById('categories-list').innerHTML = '<li>Failed to load categories.</li>';
+        });
+}
+
+
+function renderSentMessages() {
+  
+    const sentMessagesDiv = document.getElementById('sent-messages');
+    if (!sentMessagesDiv) return;
+    sentMessagesDiv.innerHTML = `<div class="loading-spinner"><div class="spinner"></div>Loading sent messages...</div>`;
+    fetch(`${API_BASE}/messages/sent`, { headers: getAuthHeader() })
+        .then(res => res.json())
+        .then(messages => {
+            console.log(messages);
+            sentMessagesDiv.innerHTML = '';
+            if (!Array.isArray(messages) || !messages.length) {
+                sentMessagesDiv.innerHTML = '<div class="empty-message">No messages sent yet.</div>';
+                return;
+            }
+          
+            messages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'sent-message-item';
+                msgDiv.innerHTML = `
+                    <div>
+                        <strong>To:</strong> ${msg.target_role}
+                        <span style="float:right; color:#888; font-size:0.9em;">
+                            ${msg.created_at ? new Date(msg.created_at).toLocaleString() : ''}
+                        </span>
+                    </div>
+                    <div style="margin: 0.5em 0 1em 0; color:#334155;">
+                        ${msg.Content}
+                    </div>
+                `;
+                sentMessagesDiv.appendChild(msgDiv);
+            });
+        })
+        .catch(() => {
+            sentMessagesDiv.innerHTML = '<div class="error-message">Failed to load sent messages.</div>';
         });
 }

@@ -8,10 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// List all users (optionally filter by role)
 func AdminListUsers(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		role := c.Query("role") // "Provider" or "Customer"
+		role := c.Query("role")
 		var users []models.User
 		query := db
 		if role != "" {
@@ -43,7 +42,6 @@ func AdminSetUserBlocked(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// List unique categories
 func AdminListCategories(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var categories []string
@@ -54,7 +52,6 @@ func AdminListCategories(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// Remove all services in a category
 func AdminRemoveCategory(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		cat := c.Params("category")
@@ -68,8 +65,6 @@ func AdminRemoveCategory(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// Add a new category (as a placeholder, since categories are not a separate table)
-// This just ensures it's available for new services
 func AdminAddCategory(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req struct {
@@ -78,15 +73,14 @@ func AdminAddCategory(db *gorm.DB) fiber.Handler {
 		if err := c.BodyParser(&req); err != nil || req.Category == "" {
 			return c.Status(400).JSON(fiber.Map{"error": "Category required"})
 		}
-		// Optionally: Create a dummy service to make this category appear, or just return success
+
 		return c.JSON(fiber.Map{"status": "added", "category": req.Category})
 	}
 }
 
-// Admin analytics: popular services, top-rated providers
 func AdminAnalytics(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Popular services by bookings
+
 		type ServiceStat struct {
 			Name  string `json:"name"`
 			Count int64  `json:"count"`
@@ -99,7 +93,6 @@ func AdminAnalytics(db *gorm.DB) fiber.Handler {
 				ORDER BY count DESC
 				LIMIT 5`).Scan(&popular)
 
-		// Top-rated providers by average review
 		type ProviderStat struct {
 			Name   string  `json:"name"`
 			Rating float64 `json:"rating"`
@@ -121,11 +114,10 @@ func AdminAnalytics(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// Send a custom message (simple log, can be stored in DB if model exists)
 func AdminSendMessage(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req struct {
-			TargetRole string `json:"target_role"` // "All", "Provider", "Customer"
+			TargetRole string `json:"target_role"`
 			Content    string `json:"content"`
 		}
 		if err := c.BodyParser(&req); err != nil || req.Content == "" || req.TargetRole == "" {
@@ -148,13 +140,28 @@ func AdminSendMessage(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// User gets all messages sent to their role (and "All")
 func GetUserMessages(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		userRole, ok := c.Locals("role").(string)
+		// Get user id from context
+		userID, ok := c.Locals("userID").(uint)
 		if !ok {
-			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+			// Depending on how your user ID is stored, you might need to use int, float64, etc.
+			// Adjust the type assertion if necessary.
+			idFloat, ok := c.Locals("userID").(float64)
+			if !ok {
+				return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+			}
+			userID = uint(idFloat)
 		}
+
+		// Get the user from the database to access their role
+		var user models.User
+		if err := db.First(&user, userID).Error; err != nil {
+			return c.Status(401).JSON(fiber.Map{"error": "User not found"})
+		}
+
+		userRole := user.Role // Now you have the user's role
+
 		var msgs []models.Message
 		if err := db.
 			Where("target_role = ? OR target_role = ?", "All", userRole).
@@ -166,7 +173,6 @@ func GetUserMessages(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// Admin sees all messages sent by them (by AdminID)
 func GetAdminSentMessages(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		adminID, ok := c.Locals("userID").(uint)

@@ -50,7 +50,7 @@ function renderStatus(status) {
     return `<span class="${cls}">${status}</span>`;
 }
 
-// Global: Will be set after profile fetch
+
 let userIsBlocked = false;
 
 async function fetchAndDisplayBookings() {
@@ -110,7 +110,6 @@ async function fetchAndDisplayBookings() {
                 `;
                 bookingsList.appendChild(card);
 
-                // If there's a review part, conditionally add it only if not blocked
                 if (!userIsBlocked && window.currentUser && window.currentUser.profile) {
                     const customerId = window.currentUser.profile.UserID || window.currentUser.profile.id || window.currentUser.profile.ID;
                     addReviewButtonToBooking(
@@ -233,7 +232,7 @@ if (closeEditBooking) {
     closeEditBooking.addEventListener('click', () => hideModal('edit-booking-modal'));
 }
 
-// PUT /profile/:id
+
 let currentProfileId = null;
 
 async function fetchAndDisplayProfile() {
@@ -265,8 +264,7 @@ async function fetchAndDisplayProfile() {
         console.log(data);
         profileInfo.innerHTML = '';
 
-        // Check block status
-        userIsBlocked = (data.blocked === true || data.blocked === 1); // support both bool and int
+        userIsBlocked = (data.blocked === true || data.blocked === 1); 
         if (userIsBlocked) {
             document.body.innerHTML = `
                 <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f8fafc;">

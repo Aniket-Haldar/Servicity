@@ -47,6 +47,14 @@
         <div class="container">
             <h1 class="dashboard-title">Provider Dashboard</h1>
             <div class="dashboard-sections">
+
+                
+                <section class="dashboard-section" id="admin-messages-section">
+                    <h2><i class="fa fa-envelope"></i> Messages from Admin</h2>
+                    <div id="admin-messages-list" class="dashboard-list"></div>
+                </section>
+              
+
                 <section class="dashboard-section" id="services">
                     <div class="section-header">
                         <h2><i class="fa fa-briefcase"></i> My Services</h2>
@@ -91,7 +99,6 @@
     </main>
     <script src="../js/dashboard_provider.js"></script>
     <script>
-
     document.querySelector('.hamburger')?.addEventListener('click', function() {
         document.querySelector('.nav-links')?.classList.toggle('active');
     });
