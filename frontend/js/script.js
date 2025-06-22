@@ -236,8 +236,12 @@ document.getElementById('dashboard-link')?.addEventListener('click', async funct
         console.log(data);
         if (data.role === 'Provider') {
             window.location.href = 'dashboard_provider.html';
-        } else {
+        } else if (data.role==='Admin') {
+            window.location.href = 'dashboard_admin.html';
+        } else if (data.role==='Customer') {
             window.location.href = 'dashboard_customer.html';
+        }else {
+            window.location.href=`${API_BASE_URL}/auth/google/login`;
         }
     } catch (err) {
         alert('Error determining dashboard: ' + err.message);

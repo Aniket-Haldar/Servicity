@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servicity Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/styles.css"><!-- Your main styles -->
+    <link rel="stylesheet" href="../css/dashboard_admin.css"><!-- Dashboard-specific -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script defer src="../js/dashboard_admin.js"></script>
+</head>
+<body>
+<nav class="navbar">
+    <div class="container">
+        <a href="#" class="logo">
+            <img src="../images/logo.png" alt="Servicity">
+        </a>
+        <div class="nav-links">
+            <a href="./index.html" class="nav-link">Home</a>
+            <a href="./services.html" class="nav-link">Services</a>
+            <a href="#" class="nav-link">About</a>
+            <a href="#" class="nav-link">Contact</a>
+            <span class="nav-link" style="color:var(--primary);font-weight:600;">Admin</span>
+            <div class="profile-dropdown">
+                    <a href="#" id="profile-icon">
+                        <img src="../images/profile.svg" alt="Profile" class="profile-icon">
+                        <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
+                    </a>
+                    <div id="auth-dropdown" class="dropdown-menu">
+                        <button id="google-login" class="oauth-btn">
+                            <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
+                            <span>Continue with Google</span>
+                        </button>
+                        <div id="user-info" style="display: none;">
+                            <div class="user-email"></div>
+                            <button id="logout-btn" class="logout-btn">Log Out</button>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
+<main class="admin-dashboard-main">
+    <aside class="admin-sidebar">
+        <button class="sidebar-btn active" data-section="analytics">📊 Analytics</button>
+        <button class="sidebar-btn" data-section="users">👥 Users/Providers</button>
+        <button class="sidebar-btn" data-section="categories">🗂️ Categories</button>
+        <button class="sidebar-btn" data-section="messages">✉️ Messages</button>
+    </aside>
+    <section class="admin-dashboard-content">
+        <div id="section-analytics" class="dashboard-section active">
+            <h2 class="section-title">Analytics</h2>
+            <div class="admin-cards">
+                <div class="admin-card">
+                    <h3>Popular Services</h3>
+                    <ul id="popular-services"></ul>
+                </div>
+                <div class="admin-card">
+                    <h3>Top Providers</h3>
+                    <ul id="top-providers"></ul>
+                </div>
+            </div>
+        </div>
+        <div id="section-users" class="dashboard-section">
+            <h2 class="section-title">Manage Users / Providers</h2>
+            <div class="user-filters">
+                <button class="tab-btn active" data-type="Provider">Providers</button>
+                <button class="tab-btn" data-type="Customer">Customers</button>
+            </div>
+            <div id="users-list"></div>
+        </div>
+        <div id="section-categories" class="dashboard-section">
+            <h2 class="section-title">Service Categories</h2>
+            <form id="add-category-form">
+                <input type="text" id="new-category-input" placeholder="New category" required>
+                <button type="submit" class="btn btn-primary">Add</button>
+            </form>
+            <ul id="categories-list"></ul>
+        </div>
+        <div id="section-messages" class="dashboard-section">
+            <h2 class="section-title">Send Message</h2>
+            <form id="message-form">
+                <label>
+                    To:
+                    <select id="message-target">
+                        <option value="All">All Users</option>
+                        <option value="Provider">Providers</option>
+                        <option value="Customer">Customers</option>
+                    </select>
+                </label>
+                <textarea id="message-content" placeholder="Enter message..." required></textarea>
+                <button class="btn btn-primary" type="submit">Send</button>
+            </form>
+            <div id="message-status"></div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

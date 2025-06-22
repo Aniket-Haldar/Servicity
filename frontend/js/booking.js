@@ -1,6 +1,5 @@
 const API_BASE_URL = 'http://localhost:3000';
 
-
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -8,9 +7,8 @@ function getCookie(name) {
     return null;
 }
 
-
 document.addEventListener('DOMContentLoaded', async () => {
-  
+
     const bookingForm = document.getElementById('booking-form');
     const confirmationSection = document.getElementById('booking-confirmation');
     const errorMessage = document.getElementById('error-message');
@@ -26,11 +24,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const bookingPhone = document.getElementById('booking-phone');
     const specialNotes = document.getElementById('special-notes');
     const confirmationDetails = document.getElementById('confirmation-details');
-
-
     const cancelBtn = document.getElementById('cancel-booking');
     const newBookingBtn = document.getElementById('new-booking-btn');
 
+    let userIsBlocked = false;
 
     function showLoading(show) {
         loadingSpinner.style.display = show ? 'flex' : 'none';
@@ -44,15 +41,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         errorMessage.style.display = 'none';
     }
 
+    function blockScreen() {
+        document.body.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f8fafc;">
+                <div style="background:#fff;padding:2.5em 2em;border-radius:12px;box-shadow:0 2px 24px #0002;text-align:center;">
+                    <h2 style="color:#ef4444;margin-bottom:1em;">Account Blocked</h2>
+                    <p style="color:#374151;font-size:1.1em;margin-bottom:2em;">Your account has been blocked by the admin. You cannot make bookings.</p>
+                    <a href="services.html" class="btn btn-primary" style="text-decoration:none;">Back to Services</a>
+                </div>
+            </div>
+        `;
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const serviceId = urlParams.get('serviceId');
     if (!serviceId || !/^\d+$/.test(serviceId)) {
         showError('Invalid service ID.');
-        bookingForm.style.display = 'none';
+        if (bookingForm) bookingForm.style.display = 'none';
         return;
     }
-
 
     let currentUser = null;
     let customerId = null;
@@ -67,6 +74,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) throw new Error('Failed to load user profile.');
             currentUser = await response.json();
 
+            // Blocked check
+            userIsBlocked = (currentUser.blocked === true || currentUser.blocked === 1);
+            if (userIsBlocked) {
+                blockScreen();
+                return false;
+            }
 
             if (
                 currentUser.profile &&
@@ -75,72 +88,67 @@ document.addEventListener('DOMContentLoaded', async () => {
                 customerId = currentUser.profile.UserID || currentUser.profile.ID;
             }
 
-
-            bookingEmail.value = currentUser.email || '';
-            bookingPhone.value = (currentUser.profile && currentUser.profile.Phone) || '';
-            bookingAddress.value = (currentUser.profile && currentUser.profile.Address) || '';
+            if (bookingEmail) bookingEmail.value = currentUser.email || '';
+            if (bookingPhone) bookingPhone.value = (currentUser.profile && currentUser.profile.Phone) || '';
+            if (bookingAddress) bookingAddress.value = (currentUser.profile && currentUser.profile.Address) || '';
+            return true;
         } catch (err) {
             showError(err.message);
             setTimeout(() => window.location.href = '/login.html', 2000);
+            return false;
         } finally {
             showLoading(false);
         }
     }
 
-
     async function loadServiceDetails() {
+        if (userIsBlocked) return;
         try {
             showLoading(true);
             const response = await fetch(`${API_BASE_URL}/services/${serviceId}`);
             if (!response.ok) throw new Error('Service not found.');
             const service = await response.json();
 
-
-            serviceName.textContent = service.Name || 'Service Name';
-            servicePrice.textContent = `Price: ${service.Price != null ? '₹' + service.Price : 'Variable'}`;
-            if (service.image_url) {
+            if (serviceName) serviceName.textContent = service.Name || 'Service Name';
+            if (servicePrice) servicePrice.textContent = `Price: ${service.Price != null ? '₹' + service.Price : 'Variable'}`;
+            if (serviceImage && service.image_url) {
                 serviceImage.src = service.image_url;
                 serviceImage.style.display = 'block';
             }
 
-
             let providerName = 'Professional';
             if (service.provider_id) {
                 try {
-                   const token = getCookie('token');    
-                        const providerResp = await fetch(`${API_BASE_URL}/profile/${service.provider_id}`, {
-                            headers: {
-                            'Authorization': `Bearer ${token}`
-                            }
+                    const token = getCookie('token');
+                    const providerResp = await fetch(`${API_BASE_URL}/profile/${service.provider_id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (providerResp.ok) {
                         const provider = await providerResp.json();
-                        console.log(provider);
-                        console.log(providerResp);
                         providerName = provider.Name || provider.name || provider.username || 'Professional';
                     }
-                } catch (err) {
-   
-                }
+                } catch (err) {}
             }
-            serviceProvider.textContent = `Provider: ${providerName}`;
+            if (serviceProvider) serviceProvider.textContent = `Provider: ${providerName}`;
 
- 
             const now = new Date();
             now.setMinutes(0, 0, 0);
             now.setHours(now.getHours() + 1);
-            bookingDate.valueAsDate = now;
-            bookingTime.value = `${String(now.getHours()).padStart(2, '0')}:00`;
+            if (bookingDate) bookingDate.valueAsDate = now;
+            if (bookingTime) bookingTime.value = `${String(now.getHours()).padStart(2, '0')}:00`;
         } catch (err) {
             showError(err.message);
-            bookingForm.style.display = 'none';
+            if (bookingForm) bookingForm.style.display = 'none';
         } finally {
             showLoading(false);
         }
     }
 
-
     function validateForm() {
+        if (userIsBlocked) {
+            showError('Your account is blocked. Booking not allowed.');
+            return false;
+        }
         if (!bookingDate.value || !bookingTime.value) {
             showError('Please select date and time.');
             return false;
@@ -157,7 +165,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             showError('Please enter your phone number.');
             return false;
         }
-
         const selectedDateTime = new Date(`${bookingDate.value}T${bookingTime.value}`);
         if (selectedDateTime < new Date()) {
             showError('Please select a future date and time.');
@@ -166,10 +173,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         return true;
     }
 
-    
     bookingForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
+        if (userIsBlocked) {
+            showError('Your account is blocked. Booking not allowed.');
+            return;
+        }
         if (!validateForm()) return;
         try {
             showLoading(true);
@@ -208,23 +218,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     function showConfirmation(booking) {
-        bookingForm.style.display = 'none';
-        confirmationSection.style.display = 'block';
+        if (bookingForm) bookingForm.style.display = 'none';
+        if (confirmationSection) confirmationSection.style.display = 'block';
         const dt = booking.booking_time ? new Date(booking.booking_time) : new Date();
-        const options = { 
+        const options = {
             weekday: 'long', year: 'numeric', month: 'short', day: 'numeric',
             hour: '2-digit', minute: '2-digit'
         };
-        confirmationDetails.innerHTML = `
-            <p><strong>Service:</strong> ${serviceName.textContent}</p>
-            <p><strong>Provider:</strong> ${serviceProvider.textContent.replace('Provider: ','')}</p>
-            <p><strong>Date & Time:</strong> ${dt.toLocaleString(undefined, options)}</p>
-            <p><strong>Address:</strong> ${booking.address || bookingAddress.value}</p>
-            <p><strong>Email:</strong> ${booking.email || bookingEmail.value}</p>
-            <p><strong>Phone:</strong> ${booking.phone || bookingPhone.value}</p>
-            ${booking.special_notes ? `<p><strong>Notes:</strong> ${booking.special_notes}</p>` : ''}
-            <p><strong>Status:</strong> <span class="status-label pending">Pending</span></p>
-        `;
+        if (confirmationDetails) {
+            confirmationDetails.innerHTML = `
+                <p><strong>Service:</strong> ${serviceName?.textContent || ""}</p>
+                <p><strong>Provider:</strong> ${serviceProvider?.textContent.replace('Provider: ','') || ""}</p>
+                <p><strong>Date & Time:</strong> ${dt.toLocaleString(undefined, options)}</p>
+                <p><strong>Address:</strong> ${booking.address || bookingAddress.value}</p>
+                <p><strong>Email:</strong> ${booking.email || bookingEmail.value}</p>
+                <p><strong>Phone:</strong> ${booking.phone || bookingPhone.value}</p>
+                ${booking.special_notes ? `<p><strong>Notes:</strong> ${booking.special_notes}</p>` : ''}
+                <p><strong>Status:</strong> <span class="status-label pending">Pending</span></p>
+            `;
+        }
     }
 
     cancelBtn?.addEventListener('click', () => {
@@ -235,7 +247,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     showLoading(true);
-    await fetchCurrentUser();
-    await loadServiceDetails();
+    const userOk = await fetchCurrentUser();
+    if (userOk !== false) {
+        await loadServiceDetails();
+    }
     showLoading(false);
 });

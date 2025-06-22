@@ -64,12 +64,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     window.location.href = 'dashboard_provider.html';
                 } else if (role === 'Customer') {
                     window.location.href = 'dashboard_customer.html';
+                } else if (role==='Admin') {
+                    window.location.href = 'dashboard_admin.html';
                 } else {
-                    window.location.href = '/auth/google/login';
+                    window.location.href=`${API_BASE_URL}/auth/google/login`;
                 }
             })
             .catch(() => {
-                window.location.href = '/auth/google/login';
+                window.location.href = `${API_BASE_URL}/auth/google/login`;
             });
         });
     }

@@ -1,8 +1,6 @@
-
 document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.querySelector('.nav-links')?.classList.toggle('active');
 });
-
 
 window.addEventListener('scroll', function() {
     const navbar = document.querySelector('.navbar');
@@ -22,7 +20,6 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
     return null;
 }
-
 
 function getToken() {
     return localStorage.getItem('token') || getCookie('token');
@@ -53,8 +50,16 @@ function renderStatus(status) {
     return `<span class="${cls}">${status}</span>`;
 }
 
+// Global: Will be set after profile fetch
+let userIsBlocked = false;
+
 async function fetchAndDisplayBookings() {
     if (!bookingsList) return;
+
+    if (userIsBlocked) {
+        bookingsList.innerHTML = `<div class="error-message"><p>Your account is blocked. You cannot view bookings.</p></div>`;
+        return;
+    }
 
     bookingsList.innerHTML = `
         <div class="loading-spinner">
@@ -87,7 +92,6 @@ async function fetchAndDisplayBookings() {
             data.forEach(b => {
                 const bookingId = getBookingId(b);
 
-             
                 const card = document.createElement('div');
                 card.className = "booking-item";
                 card.setAttribute("data-booking-id", bookingId);
@@ -100,14 +104,14 @@ async function fetchAndDisplayBookings() {
                     <div class="booking-meta">Address: ${b.address || ''}</div>
                     <div>Status: ${renderStatus(b.status || "Pending")}</div>
                     <div class="booking-actions">
-                        <button class="btn btn-outline edit-booking-btn" data-booking-id="${bookingId}">Edit</button>
-                        <button class="btn btn-danger cancel-booking-btn" data-booking-id="${bookingId}">Cancel</button>
+                        <button class="btn btn-outline edit-booking-btn" data-booking-id="${bookingId}" ${userIsBlocked ? 'disabled' : ''}>Edit</button>
+                        <button class="btn btn-danger cancel-booking-btn" data-booking-id="${bookingId}" ${userIsBlocked ? 'disabled' : ''}>Cancel</button>
                     </div>
                 `;
                 bookingsList.appendChild(card);
 
-            
-                if (window.currentUser && window.currentUser.profile) {
+                // If there's a review part, conditionally add it only if not blocked
+                if (!userIsBlocked && window.currentUser && window.currentUser.profile) {
                     const customerId = window.currentUser.profile.UserID || window.currentUser.profile.id || window.currentUser.profile.ID;
                     addReviewButtonToBooking(
                         b, 
@@ -116,7 +120,7 @@ async function fetchAndDisplayBookings() {
                     );
                 }
             });
-            setupBookingActions(data);
+            if (!userIsBlocked) setupBookingActions(data);
         } else {
             bookingsList.innerHTML = '<em>No bookings found.</em>';
         }
@@ -127,6 +131,7 @@ async function fetchAndDisplayBookings() {
 }
 
 function setupBookingActions(bookings) {
+    if (userIsBlocked) return;
     document.querySelectorAll('.edit-booking-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const bookingId = this.getAttribute('data-booking-id');
@@ -178,6 +183,11 @@ const editBookingForm = document.getElementById('edit-booking-form');
 if (editBookingForm) {
     editBookingForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        if (userIsBlocked) {
+            alert('Your account is blocked. Action not allowed.');
+            return;
+        }
 
         const idInput = document.getElementById('edit-booking-id');
         const dateInput = document.getElementById('edit-booking-date');
@@ -252,7 +262,23 @@ async function fetchAndDisplayProfile() {
         if (!response.ok) throw new Error('Failed to fetch profile');
 
         const data = await response.json();
+        console.log(data);
         profileInfo.innerHTML = '';
+
+        // Check block status
+        userIsBlocked = (data.blocked === true || data.blocked === 1); // support both bool and int
+        if (userIsBlocked) {
+            document.body.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f8fafc;">
+                    <div style="background:#fff;padding:2.5em 2em;border-radius:12px;box-shadow:0 2px 24px #0002;text-align:center;">
+                        <h2 style="color:#ef4444;margin-bottom:1em;">Account Blocked</h2>
+                        <p style="color:#374151;font-size:1.1em;margin-bottom:2em;">Your account has been blocked by the admin. You cannot access any services.</p>
+                        <a href="./index.html" class="btn btn-primary" style="text-decoration:none;">Go to Home</a>
+                    </div>
+                </div>
+            `;
+            return;
+        }
 
         currentProfileId = (data.profile && (data.profile.ID || data.profile.id)) || null;
 
@@ -266,7 +292,7 @@ async function fetchAndDisplayProfile() {
                 <div class="profile-item"><strong>Phone:</strong> ${phone}</div>
                 <div class="profile-item"><strong>Address:</strong> ${address}</div>
                 <div class="profile-actions">
-                    <button class="btn btn-outline" id="edit-profile-btn">Edit</button>
+                    <button class="btn btn-outline" id="edit-profile-btn" ${userIsBlocked ? 'disabled' : ''}>Edit</button>
                 </div>
             `;
 
@@ -282,10 +308,9 @@ async function fetchAndDisplayProfile() {
             const userEmail = document.querySelector('.user-email');
             if (userEmail) userEmail.textContent = data.email || '';
 
-   
             window.currentUser = { profile: data.profile || data, name: data.name || data.fullName };
 
-            setupProfileEdit(data, phone, address);
+            if (!userIsBlocked) setupProfileEdit(data, phone, address);
         } else {
             profileInfo.innerHTML = '<em>Profile details not found.</em>';
         }
@@ -297,7 +322,7 @@ async function fetchAndDisplayProfile() {
 
 function setupProfileEdit(profile, phone, address) {
     const editProfileBtn = document.getElementById('edit-profile-btn');
-    if (editProfileBtn) {
+    if (editProfileBtn && !userIsBlocked) {
         editProfileBtn.addEventListener('click', function() {
             const editProfileName = document.getElementById('edit-profile-name');
             const editProfileEmail = document.getElementById('edit-profile-email');
@@ -318,6 +343,11 @@ const editProfileForm = document.getElementById('edit-profile-form');
 if (editProfileForm) {
     editProfileForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        if (userIsBlocked) {
+            alert('Your account is blocked. Action not allowed.');
+            return;
+        }
 
         const nameInput = document.getElementById('edit-profile-name');
         const emailInput = document.getElementById('edit-profile-email');
@@ -371,10 +401,8 @@ if (closeEditProfile) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
- 
         await fetchAndDisplayProfile();
         await fetchAndDisplayBookings();
-
 
         const profileIcon = document.getElementById('profile-icon');
         if (profileIcon) {

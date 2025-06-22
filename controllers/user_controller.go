@@ -130,9 +130,10 @@ func GetProfile(db *gorm.DB) fiber.Handler {
 		}
 
 		response := fiber.Map{
-			"name":  user.Name,
-			"email": user.Email,
-			"role":  user.Role,
+			"name":    user.Name,
+			"email":   user.Email,
+			"role":    user.Role,
+			"blocked": user.Blocked,
 		}
 
 		//role based
@@ -160,7 +161,6 @@ func GetProfile(db *gorm.DB) fiber.Handler {
 		return c.JSON(response)
 	}
 }
-
 func PutProfile(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		idStr := c.Params("id")
@@ -236,8 +236,27 @@ func PutProfile(db *gorm.DB) fiber.Handler {
 				"address": profile.Address,
 				"phone":   profile.Phone,
 			})
+		} else if input.Role == "Admin" {
+			var user models.User
+			if err := db.First(&user, profileID).Error; err != nil {
+				return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+			}
+			user.Name = input.Name
+			user.Role = input.Role
+			if err := db.Save(&user).Error; err != nil {
+				return c.Status(500).JSON(fiber.Map{"error": "Failed to update admin user"})
+			}
+			// Optionally, cleanup any profile records if they exist
+			_ = db.Where("user_id = ?", profileID).Delete(&models.ProviderProfile{})
+			_ = db.Where("user_id = ?", profileID).Delete(&models.CustomerProfile{})
+
+			return c.JSON(fiber.Map{
+				"id":   user.ID,
+				"name": user.Name,
+				"role": user.Role,
+			})
 		} else {
-			return c.Status(400).JSON(fiber.Map{"error": "Role must be either 'Provider' or 'Customer'"})
+			return c.Status(400).JSON(fiber.Map{"error": "Role must be either 'Provider', 'Customer' or 'Admin'"})
 		}
 	}
 }

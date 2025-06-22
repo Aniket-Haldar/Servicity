@@ -16,6 +16,17 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	profile.Put("/:id", middleware.RequireAuth, controllers.PutProfile(db))
 	profile.Get("/:id", middleware.RequireAuth, controllers.GetUserByID(db))
 
+	admin := app.Group("/admin")
+
+	admin.Get("/users", middleware.RequireAuth, controllers.AdminListUsers(db))
+	admin.Put("/users/:id/blocked", middleware.RequireAuth, controllers.AdminSetUserBlocked(db))
+	admin.Get("/categories", middleware.RequireAuth, controllers.AdminListCategories(db))
+	admin.Post("/categories", middleware.RequireAuth, controllers.AdminAddCategory(db))
+	admin.Delete("/categories/:category", middleware.RequireAuth, controllers.AdminRemoveCategory(db))
+	admin.Get("/analytics", middleware.RequireAuth, controllers.AdminAnalytics(db))
+	admin.Post("/messages", middleware.RequireAuth, controllers.AdminSendMessage(db))
+	admin.Get("/messages/sent", middleware.RequireAuth, controllers.GetAdminSentMessages(db))
+
 	service := app.Group("/services")
 
 	service.Post("/", middleware.RequireAuth, controllers.CreateService(db))
@@ -43,6 +54,8 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	review.Get("/:id", controllers.GetReview(db))
 	review.Put("/:id", controllers.UpdateReview(db))
 	review.Delete("/:id", controllers.DeleteReview(db))
+
+	app.Get("/messages/received", middleware.RequireAuth, controllers.GetUserMessages(db))
 
 	auth := app.Group("/auth")
 	auth.Get("/google/login", controllers.GoogleLogin)
