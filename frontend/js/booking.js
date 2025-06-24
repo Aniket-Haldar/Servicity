@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return true;
         } catch (err) {
             showError(err.message);
-            setTimeout(() => window.location.href = '/login.html', 2000);
+            setTimeout(() => window.location.href = `${API_BASE_URL}/auth/google/login`, 2000);
             return false;
         } finally {
             showLoading(false);

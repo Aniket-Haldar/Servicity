@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Aniket-Haldar/Servicity/models"
@@ -40,7 +39,6 @@ func CreateBooking(db *gorm.DB) fiber.Handler {
 func GetBookings(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userID := c.Locals("userID")
-		fmt.Println(userID)
 		if userID == nil {
 			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 		}

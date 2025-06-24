@@ -234,7 +234,7 @@ class ProviderDashboard {
     async fetchProviderId() {
         const token = getCookie('token');
         if (!token) {
-            window.location.href = '/login';
+            window.location.href = `${API_BASE_URL}/auth/google/login`;
             return;
         }
         try {
@@ -261,7 +261,7 @@ class ProviderDashboard {
             }
         } catch (error) {
             alert("Session expired or invalid. Please log in again.");
-            window.location.href = '/login';
+            window.location.href = `${API_BASE_URL}/auth/google/login`;
         }
     }
 

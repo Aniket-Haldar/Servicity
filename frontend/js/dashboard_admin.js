@@ -276,7 +276,6 @@ function renderSentMessages() {
     fetch(`${API_BASE}/messages/sent`, { headers: getAuthHeader() })
         .then(res => res.json())
         .then(messages => {
-            console.log(messages);
             sentMessagesDiv.innerHTML = '';
             if (!Array.isArray(messages) || !messages.length) {
                 sentMessagesDiv.innerHTML = '<div class="empty-message">No messages sent yet.</div>';

@@ -149,9 +149,9 @@ function setupServiceInteractions() {
 
 
 async function bookService(serviceId) {
-    const token = localStorage.getItem('token') || getCookie('token');
+    const token = getCookie('token');
     if (!token) {
-        window.location.href = '/login?redirect=booking';
+        window.location.href = `${API_BASE_URL}/auth/google/login`;
         return;
     }
 
@@ -182,9 +182,9 @@ async function bookService(serviceId) {
 }
 
 async function deleteService(serviceId) {
-    const token = localStorage.getItem('token') || getCookie('token');
+    const token = getCookie('token');
     if (!token) {
-        window.location.href = '/login';
+        window.location.href = `${API_BASE_URL}/auth/google/login`;
         return;
     }
 
@@ -222,9 +222,9 @@ searchInput?.addEventListener('keypress', (e) => {
 
 document.getElementById('dashboard-link')?.addEventListener('click', async function(e) {
     e.preventDefault();
-    const token = localStorage.getItem('token') || getCookie('token');
+    const token = getCookie('token');
     if (!token) {
-        window.location.href = '/login';
+        window.location.href = `${API_BASE_URL}/auth/google/login`;
         return;
     }
     try {
@@ -288,6 +288,7 @@ async function checkAuthStatus() {
         return false;
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', async () => {
 
