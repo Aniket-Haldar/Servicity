@@ -68,10 +68,93 @@ async function showAuthUI() {
         if (userEmailDiv) userEmailDiv.textContent = "";
     }
 }
+async function renderProviderDetails() {
+    const token = getCookie('token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile/details`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const profile = data.profile || {};
+        const box = document.getElementById('provider-details');
+        if (!box) return;
 
+        box.innerHTML = `
+            <div class="profile-row"><label>Name:</label> <span id="profile-name">${escapeHtml(data.name || "")}</span></div>
+            <div class="profile-row"><label>Email:</label> <span id="profile-email">${escapeHtml(data.email || "")}</span></div>
+            <div class="profile-row"><label>Profession:</label> <span id="profile-profession">${escapeHtml(profile.Profession || "")}</span></div>
+            <div class="profile-row"><label>Pincode:</label> <span id="profile-pincode">${escapeHtml(profile.Pincode || "")}</span></div>
+            <div class="profile-row"><label>Available Timings:</label> <span id="profile-timings">${escapeHtml(profile.AvailableTimings || "")}</span></div>
+            <div class="profile-row"><label>Status:</label> <span>${data.blocked ? '<span style="color:#e74c3c">Blocked</span>' : '<span style="color:#27ae60">Active</span>'}</span></div>
+            <button class="btn btn-primary" id="edit-profile-btn"><i class="fa fa-pen"></i> Edit</button>
+            <form id="edit-profile-form" style="display:none;margin-top:1.5em;">
+                <div class="profile-row"><label>Name:</label> <input type="text" id="edit-profile-name" required></div>
+                <div class="profile-row"><label>Email:</label> <input type="email" id="edit-profile-email" required></div>
+                <div class="profile-row"><label>Profession:</label> <input type="text" id="edit-profile-profession" required></div>
+                <div class="profile-row"><label>Pincode:</label> <input type="text" id="edit-profile-pincode" required></div>
+                <div class="profile-row"><label>Available Timings:</label> <input type="text" id="edit-profile-timings" required></div>
+                <div class="form-actions" style="margin-top:1.2em;display:flex;gap:1em;">
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-profile">Cancel</button>
+                </div>
+            </form>
+        `;
+
+        document.getElementById('edit-profile-name').value = data.name || "";
+        document.getElementById('edit-profile-email').value = data.email || "";
+        document.getElementById('edit-profile-profession').value = profile.Profession || "";
+        document.getElementById('edit-profile-pincode').value = profile.Pincode || "";
+        document.getElementById('edit-profile-timings').value = profile.AvailableTimings || "";
+
+        document.getElementById('edit-profile-btn').onclick = () => {
+            document.getElementById('edit-profile-form').style.display = 'block';
+            document.getElementById('edit-profile-btn').style.display = 'none';
+        };
+        document.getElementById('cancel-edit-profile').onclick = () => {
+            document.getElementById('edit-profile-form').style.display = 'none';
+            document.getElementById('edit-profile-btn').style.display = '';
+        };
+        document.getElementById('edit-profile-form').onsubmit = async function(e) {
+            e.preventDefault();
+
+     
+            const updatedData = {
+                Name: document.getElementById('edit-profile-name').value,
+                Email: document.getElementById('edit-profile-email').value,
+                Role: "Provider",
+                Profession: document.getElementById('edit-profile-profession').value,
+                Pincode: document.getElementById('edit-profile-pincode').value,
+                AvailableTimings: document.getElementById('edit-profile-timings').value,
+                Pricing: 0
+            };
+
+            try {
+                const providerId = profile.ID || profile.Id || profile.id || data.id || data.ID || data.UserID;
+                const res = await fetch(`${API_BASE_URL}/profile/${providerId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+                if (!res.ok) {
+                    alert("Failed to update profile.");
+                    return;
+                }
+                renderProviderDetails();
+            } catch (err) {
+                alert("Error updating profile.");
+            }
+        };
+    } catch (e) {}
+}
 function setupDropdownLogic() {
     document.getElementById('profile-icon')?.addEventListener('click', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         document.getElementById('auth-dropdown')?.classList.toggle('show');
     });
     document.addEventListener('click', function(e) {
@@ -96,7 +179,7 @@ function setupDropdownLogic() {
     });
 }
 
-// BLOCKED SCREEN
+
 function showBlockedScreen() {
     document.body.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f8fafc;">
@@ -120,7 +203,7 @@ class ProviderDashboard {
     }
 
     async init() {
-        // Blocked check: Here too, in case showAuthUI is bypassed
+
         const token = getCookie('token');
         if (token) {
             try {
@@ -531,6 +614,7 @@ async function fetchReceivedAdminMessages() {
 function renderReceivedAdminMessages() {
     const container = document.getElementById('admin-messages-list');
     if (!container) return;
+
     container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading admin messages...</div>';
 
     fetchReceivedAdminMessages().then(messages => {
@@ -559,9 +643,42 @@ document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.getElementById('nav-links')?.classList.toggle('active');
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('.hamburger')?.addEventListener('click', function() {
+        document.getElementById('nav-links')?.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.sidebar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active'));
+            const sectionId = this.getAttribute('data-section');
+            document.getElementById(sectionId).classList.add('active');
+            if (sectionId === 'dashboard-home') renderProviderDetails();
+        });
+    });
+
+   
+    document.getElementById('profile-icon')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('auth-dropdown')?.classList.toggle('show');
+    });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.profile-dropdown')) {
+            document.getElementById('auth-dropdown')?.classList.remove('show');
+        }
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('auth-dropdown')?.classList.remove('show');
+        }
+    });
+
+
     new ProviderDashboard();
-    showAuthUI();
     setupDropdownLogic();
-     renderReceivedAdminMessages();
-})
+    showAuthUI();
+    renderReceivedAdminMessages();
+    renderProviderDetails(); 
+});
