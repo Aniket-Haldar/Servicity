@@ -142,25 +142,20 @@ func AdminSendMessage(db *gorm.DB) fiber.Handler {
 
 func GetUserMessages(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Get user id from context
 		userID, ok := c.Locals("userID").(uint)
 		if !ok {
-			// Depending on how your user ID is stored, you might need to use int, float64, etc.
-			// Adjust the type assertion if necessary.
 			idFloat, ok := c.Locals("userID").(float64)
 			if !ok {
 				return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 			}
 			userID = uint(idFloat)
 		}
-
-		// Get the user from the database to access their role
 		var user models.User
 		if err := db.First(&user, userID).Error; err != nil {
 			return c.Status(401).JSON(fiber.Map{"error": "User not found"})
 		}
 
-		userRole := user.Role // Now you have the user's role
+		userRole := user.Role
 
 		var msgs []models.Message
 		if err := db.

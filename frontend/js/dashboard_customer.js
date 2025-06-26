@@ -7,7 +7,22 @@ function getCookie(name) {
     return null;
 }
 function getToken() {
-    return localStorage.getItem('token') || getCookie('token');
+    return getCookie('token');
+}
+
+async function fetchCustomerId() {
+    const token = getToken();
+    if (!token) return null;
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile/details`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.profile.UserID;
+    } catch {
+        return null;
+    }
 }
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
@@ -99,7 +114,6 @@ function setupDropdownLogic() {
     });
     document.getElementById('logout-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
-        localStorage.removeItem('token');
         document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         window.location.href = "index.html";
     });
@@ -120,7 +134,6 @@ function setupSidebarTabs() {
         });
     });
 }
-
 
 let currentProfileId = null;
 let userIsBlocked = false;
@@ -147,7 +160,6 @@ async function fetchAndDisplayProfile() {
         const phone = (data.profile && (data.profile.Phone || data.profile.phone)) || data.phone || '';
         const address = (data.profile && (data.profile.Address || data.profile.address)) || data.address || '';
 
- 
         profileInfo.innerHTML = `
             <div class="profile-row"><label>Name:</label> <span>${escapeHtml(data.name || data.fullName || '')}</span></div>
             <div class="profile-row"><label>Email:</label> <span>${escapeHtml(data.email || '')}</span></div>
@@ -166,13 +178,11 @@ async function fetchAndDisplayProfile() {
             </form>
         `;
 
-
         document.getElementById('edit-profile-name').value = data.name || data.fullName || '';
         document.getElementById('edit-profile-email').value = data.email || '';
         document.getElementById('edit-profile-phone').value = phone || '';
         document.getElementById('edit-profile-address').value = address || '';
 
-    
         document.getElementById('edit-profile-btn').onclick = () => {
             document.getElementById('edit-profile-form').style.display = 'block';
             document.getElementById('edit-profile-btn').style.display = 'none';
@@ -215,7 +225,6 @@ async function fetchAndDisplayProfile() {
     }
 }
 
-
 async function fetchAndDisplayBookings() {
     const bookingsList = document.getElementById('bookings-list');
     if (!bookingsList) return;
@@ -230,15 +239,16 @@ async function fetchAndDisplayBookings() {
         return;
     }
     try {
-        const response = await fetch(`${API_BASE_URL}/booking`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        // Fetch bookings and customerId in parallel
+        const [response, customerId] = await Promise.all([
+            fetch(`${API_BASE_URL}/booking`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetchCustomerId()
+        ]);
         if (!response.ok) throw new Error('Failed to fetch bookings');
         const data = await response.json();
         bookingsList.innerHTML = '';
         if (Array.isArray(data) && data.length) {
             data.forEach(b => {
-                console.log(b);
                 const card = document.createElement('div');
                 card.className = "booking-card";
                 card.innerHTML = `
@@ -254,6 +264,12 @@ async function fetchAndDisplayBookings() {
                     </div>
                 `;
                 bookingsList.appendChild(card);
+
+                // Add review button for completed bookings
+                const actionsContainer = card.querySelector('.booking-actions');
+                if ((b.status || '').toLowerCase() === 'completed' && typeof addReviewButtonToBooking === 'function') {
+                    addReviewButtonToBooking(b, actionsContainer, customerId);
+                }
             });
             setupBookingActions(data);
         } else {
@@ -334,7 +350,6 @@ document.getElementById('edit-booking-form')?.addEventListener('submit', async f
     }
 });
 
-
 async function renderReceivedAdminMessages() {
     const container = document.getElementById('admin-messages-list');
     if (!container) return;
@@ -411,11 +426,9 @@ async function renderReceivedProviderMessages() {
     }
 }
 
-
 document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.getElementById('nav-links')?.classList.toggle('active');
 });
-
 
 document.addEventListener('DOMContentLoaded', function() {
     setupDropdownLogic();

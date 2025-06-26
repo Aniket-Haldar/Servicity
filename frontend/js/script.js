@@ -156,31 +156,31 @@ async function bookService(serviceId) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/bookings`, {
+        const response = await fetch(`${API_BASE_URL}/booking`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                serviceId: serviceId,
-                date: new Date().toISOString().split('T')[0]
+                service_id: Number(serviceId),
+                booking_time: new Date().toISOString()
             })
         });
 
         if (!response.ok) {
-            throw new Error(`Booking failed with status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`Booking failed: ${errorText}`);
         }
-
+        //http://localhost:5500/frontend/html/booking.html?serviceId=134
         const data = await response.json();
-        window.location.href = `/booking-confirmation?id=${data.bookingId}`;
+        window.location.href = `/frontend/html/booking.html?serviceId=${serviceId}`;
 
     } catch (error) {
         console.error('Booking failed:', error);
         alert('Booking failed. Please try again.');
     }
 }
-
 async function deleteService(serviceId) {
     const token = getCookie('token');
     if (!token) {

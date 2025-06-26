@@ -1,13 +1,79 @@
-#review-modal {
-    display: none; position: fixed; z-index: 1001; top: 0; left: 0; width: 100vw; height: 100vh;
-}
-#review-modal .modal-overlay {
-    position: absolute; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4);
-}
+
 #review-modal .modal-content {
-    position: absolute; background: #fff; border-radius: 8px; box-shadow: 0 2px 16px #2224; 
-    left: 50%; top: 50%; transform: translate(-50%, -50%);
-    padding: 32px; min-width: 320px;
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 32px #0003, 0 1.5px 3px #0001;
+    padding: 36px 32px 28px 32px;
+    min-width: 320px;
+    width: 100%;
+    max-width: 410px;   
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    text-align: center;
 }
-.review-card { border: 1px solid #eee; border-radius:6px; background: #fafafa; margin-bottom: 10px; padding: 12px; }
-.review-rating { color: #f1c40f; font-size: 1.2em; }
+#review-modal h2#review-modal-title {
+    font-size: 1.6em;
+    font-weight: 700;
+    margin: 0 0 24px 0;
+    text-align: center;
+}
+#existing-review {
+    margin-bottom: 1.5em;
+}
+#existing-review-rating {
+    display: block;
+    font-size: 1.4em;
+    margin-bottom: 0.3em;
+    color: #ffc107;
+    letter-spacing: 2px;
+}
+#existing-review-text {
+    font-size: 1.05em;
+    color: #374151;
+    margin-bottom: 1.2em;
+}
+#edit-review-btn {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 26px;
+    font-size: 1.08em;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px #2563eb22;
+    transition: background .18s;
+}
+#edit-review-btn:hover {
+    background: #1d48a8;
+}
+#review-modal .close-btn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 36px; height: 36px;
+    background: #f2f2f6;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5em;
+    color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .16s;
+    z-index: 10;
+}
+#review-modal .close-btn:hover {
+    background: #e0e7ef;
+}
+@media (max-width: 500px) {
+    #review-modal .modal-content {
+        min-width: 0;
+        padding: 18px 6px 10px 6px;
+        max-width: 98vw;
+    }
+}
