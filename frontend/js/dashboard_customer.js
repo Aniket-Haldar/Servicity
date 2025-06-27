@@ -239,7 +239,6 @@ async function fetchAndDisplayBookings() {
         return;
     }
     try {
-        // Fetch bookings and customerId in parallel
         const [response, customerId] = await Promise.all([
             fetch(`${API_BASE_URL}/booking`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetchCustomerId()
@@ -264,8 +263,6 @@ async function fetchAndDisplayBookings() {
                     </div>
                 `;
                 bookingsList.appendChild(card);
-
-                // Add review button for completed bookings
                 const actionsContainer = card.querySelector('.booking-actions');
                 if ((b.status || '').toLowerCase() === 'completed' && typeof addReviewButtonToBooking === 'function') {
                     addReviewButtonToBooking(b, actionsContainer, customerId);

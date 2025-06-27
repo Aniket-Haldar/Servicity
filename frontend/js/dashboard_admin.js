@@ -8,14 +8,85 @@ function getCookie(name) {
     return null;
 }
 
+// Helper to show/hide dropdown auth UI appropriately
+function updateAuthDropdownUI(isAuthenticated, user) {
+    const userInfo = document.getElementById('user-info');
+    const googleLogin = document.getElementById('google-login');
+    const userNameSpan = document.querySelector('.user-name');
+    const userEmailDiv = document.querySelector('.user-email');
+    if (isAuthenticated) {
+        if (googleLogin) googleLogin.style.display = "none";
+        if (userInfo) userInfo.style.display = "block";
+        if (userNameSpan) userNameSpan.textContent = user?.name || '';
+        if (userEmailDiv) userEmailDiv.textContent = user?.email || '';
+    } else {
+        if (userInfo) userInfo.style.display = "none";
+        if (googleLogin) googleLogin.style.display = "block";
+        if (userNameSpan) userNameSpan.textContent = "";
+        if (userEmailDiv) userEmailDiv.textContent = "";
+    }
+}
+
 function getAuthHeader() {
     const token = getCookie('token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
+async function showAuthUI() {
+    const token = getCookie('token');
+    if (!token) {
+        updateAuthDropdownUI(false);
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile/details`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Not logged in");
+        const data = await res.json();
+        if (data.blocked === true || data.blocked === 1) {
+            showBlockedScreen();
+            throw new Error("Blocked");
+        }
+        updateAuthDropdownUI(true, data);
+    } catch {
+        updateAuthDropdownUI(false);
+    }
+}
+
+function setupDropdownLogic() {
+    document.getElementById('profile-icon')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('auth-dropdown')?.classList.toggle('show');
+    });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.profile-dropdown')) {
+            document.getElementById('auth-dropdown')?.classList.remove('show');
+        }
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('auth-dropdown')?.classList.remove('show');
+        }
+    });
+    document.getElementById('google-login')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = `${API_BASE_URL}/auth/google/login`;
+    });
+    document.getElementById('logout-btn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        // Optionally update UI immediately if you are not redirecting
+        updateAuthDropdownUI(false);
+        window.location.href = "index.html";
+    });
+}
+
 async function checkAdminAuth() {
     const token = getCookie('token');
     if (!token) {
+        updateAuthDropdownUI(false);
         showAuthError("You must be logged in as an admin to access the dashboard.");
         return false;
     }
@@ -27,20 +98,21 @@ async function checkAdminAuth() {
             }
         });
         if (!res.ok) {
+            updateAuthDropdownUI(false);
             showAuthError("Session expired or unauthorized. Please log in again.");
             return false;
         }
         const user = await res.json();
 
         if (!user.role || user.role.toLowerCase() !== 'admin') {
+            updateAuthDropdownUI(false);
             showAuthError("Access denied. Admins only.");
             return false;
         }
-        document.querySelector('.user-name').textContent = user.name || '';
-        if (document.querySelector('.user-email')) document.querySelector('.user-email').textContent = user.email || '';
-        document.getElementById('user-info').style.display = 'block';
+        updateAuthDropdownUI(true, user);
         return true;
     } catch (error) {
+        updateAuthDropdownUI(false);
         showAuthError("Login check failed. Please try again.");
         return false;
     }
@@ -147,35 +219,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('message-status').textContent = `Message sent to ${target}`;
             setTimeout(() => document.getElementById('message-status').textContent = '', 2000);
             document.getElementById('message-form').reset();
-        
+
             renderSentMessages();
         });
     });
 
     renderSentMessages();
-
-    document.getElementById('logout-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        window.location.href = "./index.html";
-    });
-
-    const profileIcon = document.getElementById('profile-icon');
-    if (profileIcon) {
-        profileIcon.addEventListener('click', function(e) {
-            e.preventDefault();
-            const authDropdown = document.getElementById('auth-dropdown');
-            if (authDropdown) authDropdown.classList.toggle('show');
-        });
-    }
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.profile-dropdown')) {
-            const authDropdown = document.getElementById('auth-dropdown');
-            if (authDropdown) authDropdown.classList.remove('show');
-        }
-    });
+    showAuthUI();
+    setupDropdownLogic();
 });
-
 
 function renderAnalytics() {
     fetch(`${API_BASE}/analytics`, { headers: getAuthHeader() })
@@ -266,9 +318,7 @@ function renderCategories() {
         });
 }
 
-
 function renderSentMessages() {
-  
     const sentMessagesDiv = document.getElementById('sent-messages');
     if (!sentMessagesDiv) return;
     sentMessagesDiv.innerHTML = `<div class="loading-spinner"><div class="spinner"></div>Loading sent messages...</div>`;
@@ -280,7 +330,6 @@ function renderSentMessages() {
                 sentMessagesDiv.innerHTML = '<div class="empty-message">No messages sent yet.</div>';
                 return;
             }
-          
             messages.forEach(msg => {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'sent-message-item';
