@@ -402,6 +402,20 @@ body {
     color: #222;
     font-weight: 400;
 }
+.btn-info {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin-left: 0.5em;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background .16s;
+}
+.btn-info:hover {
+    background: #1d48a8;
+}
 
 
 @media (max-width: 600px) {

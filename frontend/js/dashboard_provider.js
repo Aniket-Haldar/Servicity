@@ -119,7 +119,6 @@ async function renderProviderDetails() {
         document.getElementById('edit-profile-form').onsubmit = async function(e) {
             e.preventDefault();
 
-     
             const updatedData = {
                 Name: document.getElementById('edit-profile-name').value,
                 Email: document.getElementById('edit-profile-email').value,
@@ -177,7 +176,59 @@ function setupDropdownLogic() {
         window.location.href = "index.html";
     });
 }
+function openProviderMessageModal(booking) {
+    document.getElementById('provider-message-modal').style.display = 'flex';
+    document.getElementById('provider-message-booking-id').value = booking.id || booking.ID;
+    document.getElementById('provider-message-customer-id').value = booking.customer_id;
+    document.getElementById('provider-message-title').value = '';
+    document.getElementById('provider-message-content').value = '';
+    document.getElementById('provider-message-status').textContent = '';
+}
 
+document.getElementById('close-provider-message-modal').onclick = function() {
+    document.getElementById('provider-message-modal').style.display = 'none';
+};
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('provider-message-modal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+document.getElementById('provider-message-form').onsubmit = async function(e) {
+    e.preventDefault();
+    const token = getCookie('token');
+    const customerId = Number(document.getElementById('provider-message-customer-id').value); 
+    const bookingIdRaw = document.getElementById('provider-message-booking-id').value;
+    const bookingId = bookingIdRaw ? Number(bookingIdRaw) : null; 
+    const title = document.getElementById('provider-message-title').value.trim();
+    const content = document.getElementById('provider-message-content').value.trim();
+    console.log({ receiver_id: customerId, booking_id: bookingId, title, content });
+    if (!content || !customerId || isNaN(customerId)) {
+        alert('No customer id found for this booking. Cannot send message.');
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/provider/messages`, {
+            method: "POST",
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ receiver_id: customerId, booking_id: bookingId, title, content })
+        });
+        if (res.ok) {
+            document.getElementById('provider-message-status').textContent = "Message sent!";
+            setTimeout(() => {
+                document.getElementById('provider-message-modal').style.display = 'none';
+            }, 1000);
+        } else {
+            document.getElementById('provider-message-status').textContent = "Failed to send message.";
+        }
+    } catch (error) {
+        document.getElementById('provider-message-status').textContent = "Error sending message.";
+    }
+};
 
 function showBlockedScreen() {
     document.body.innerHTML = `
@@ -202,7 +253,6 @@ class ProviderDashboard {
     }
 
     async init() {
-
         const token = getCookie('token');
         if (token) {
             try {
@@ -431,85 +481,96 @@ class ProviderDashboard {
         document.getElementById('service-form').reset();
     }
 
-   async fetchProviderBookings() {
-    const token = getCookie('token');
-    if (!this.providerId) return;
-    try {
-        const res = await fetch(`${API_BASE_URL}/booking/provider`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-        });
-        if (!res.ok) throw new Error('Failed to fetch bookings');
-        let bookings = await res.json();
-   
-        
-        bookings = bookings.map(b => ({
-            id: b.id || b.ID,
-            service_id: b.service_id || b.ServiceID,
-            provider_id: b.provider_id || b.ProviderID,
-            booking_time: b.booking_time || b.BookingTime,
-            status: b.status || b.Status,
-            email: b.email || b.Email,
-            phone: b.phone || b.Phone,
-            address: b.address || b.Address,
-            special_notes: b.special_notes || b.SpecialNotes,
-            service: b.Service || b.service 
-        }));
-        const ownBookings = bookings.filter(b => String(b.provider_id) === String(this.providerId));
-        this.renderProviderBookings(ownBookings);
-    } catch (error) {
-        document.getElementById('provider-bookings').innerHTML =
-            '<div class="error">Failed to load bookings. Please refresh.</div>';
-    }
-}
+    async fetchProviderBookings() {
+        const token = getCookie('token');
+        if (!this.providerId) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/booking/provider`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+            });
+            if (!res.ok) throw new Error('Failed to fetch bookings');
+            let bookings = await res.json();
 
-renderProviderBookings(bookings) {
-    const container = document.getElementById('provider-bookings');
-    if (!container) return;
-    container.innerHTML = '';
-    if (!bookings.length) {
-        container.innerHTML = '<p class="no-data">No bookings found yet.</p>';
-        return;
+            bookings = bookings.map(b => ({
+                id: b.id || b.ID,
+                service_id: b.service_id || b.ServiceID,
+                provider_id: b.provider_id || b.ProviderID,
+                customer_id: b.customer_id || b.CustomerID || b.customerId, 
+                booking_time: b.booking_time || b.BookingTime,
+                status: b.status || b.Status,
+                email: b.email || b.Email,
+                phone: b.phone || b.Phone,
+                address: b.address || b.Address,
+                special_notes: b.special_notes || b.SpecialNotes,
+                service: b.Service || b.service
+            }));
+            const ownBookings = bookings.filter(b => String(b.provider_id) === String(this.providerId));
+            this.renderProviderBookings(ownBookings);
+        } catch (error) {
+            document.getElementById('provider-bookings').innerHTML =
+                '<div class="error">Failed to load bookings. Please refresh.</div>';
+        }
     }
-    bookings.forEach(booking => {
-        const card = document.createElement('div');
-        card.className = 'booking-card';
-        card.innerHTML = `
-            <div class="booking-info">
-                <div><b>${escapeHtml(booking.email || 'Customer')}</b> booked ${escapeHtml(booking.service?.name || booking.service?.Name || 'Service')}</div>
-                <div>Date: ${formatDate(booking.booking_time)}</div>
-                <div>Status: <span class="status-${escapeHtml(booking.status)}">${escapeHtml(booking.status)}</span></div>
-                ${booking.address ? `<div>Address: ${escapeHtml(booking.address)}</div>` : ''}
-                ${booking.special_notes ? `<div>Notes: ${escapeHtml(booking.special_notes)}</div>` : ''}
-            </div>
-            <div class="booking-actions"></div>
-        `;
-        const actions = card.querySelector('.booking-actions');
-        if (booking.status === 'pending') {
-            const acceptBtn = document.createElement('button');
-            acceptBtn.className = 'btn btn-success';
-            acceptBtn.textContent = 'Accept';
-            acceptBtn.onclick = () => this.respondBooking(booking.id, 'accepted');
-            const rejectBtn = document.createElement('button');
-            rejectBtn.className = 'btn btn-secondary';
-            rejectBtn.textContent = 'Reject';
-            rejectBtn.onclick = () => this.respondBooking(booking.id, 'rejected');
-            actions.appendChild(acceptBtn);
-            actions.appendChild(rejectBtn);
+
+    renderProviderBookings(bookings) {
+        const container = document.getElementById('provider-bookings');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!bookings.length) {
+            container.innerHTML = '<p class="no-data">No bookings found yet.</p>';
+            return;
         }
-        if (booking.status === 'accepted') {
-            const completeBtn = document.createElement('button');
-            completeBtn.className = 'btn btn-complete';
-            completeBtn.textContent = 'Mark Completed';
-            completeBtn.onclick = () => this.respondBooking(booking.id, 'completed');
-            actions.appendChild(completeBtn);
-        }
-        container.appendChild(card);
-    });
-}
+        bookings.forEach(booking => {
+            const card = document.createElement('div');
+            card.className = 'booking-card';
+            card.innerHTML = `
+                <div class="booking-info">
+                    <div><b>${escapeHtml(booking.email || 'Customer')}</b> booked ${escapeHtml(booking.service?.name || booking.service?.Name || 'Service')}</div>
+                    <div>Date: ${formatDate(booking.booking_time)}</div>
+                    <div>Status: <span class="status-${escapeHtml(booking.status)}">${escapeHtml(booking.status)}</span></div>
+                    ${booking.address ? `<div>Address: ${escapeHtml(booking.address)}</div>` : ''}
+                    ${booking.special_notes ? `<div>Notes: ${escapeHtml(booking.special_notes)}</div>` : ''}
+                </div>
+                <div class="booking-actions"></div>
+            `;
+            const actions = card.querySelector('.booking-actions');
+
+         
+            const messageBtn = document.createElement('button');
+            messageBtn.className = 'btn btn-info';
+            messageBtn.textContent = 'Message';
+            messageBtn.style.marginLeft = '0.5em';
+            messageBtn.onclick = () => openProviderMessageModal(booking);
+            actions.appendChild(messageBtn);
+
+        
+            if (booking.status === 'pending') {
+                const acceptBtn = document.createElement('button');
+                acceptBtn.className = 'btn btn-success';
+                acceptBtn.textContent = 'Accept';
+                acceptBtn.onclick = () => this.respondBooking(booking.id, 'accepted');
+                const rejectBtn = document.createElement('button');
+                rejectBtn.className = 'btn btn-secondary';
+                rejectBtn.textContent = 'Reject';
+                rejectBtn.onclick = () => this.respondBooking(booking.id, 'rejected');
+                actions.appendChild(acceptBtn);
+                actions.appendChild(rejectBtn);
+            }
+           
+            if (booking.status === 'accepted') {
+                const completeBtn = document.createElement('button');
+                completeBtn.className = 'btn btn-complete';
+                completeBtn.textContent = 'Mark Completed';
+                completeBtn.onclick = () => this.respondBooking(booking.id, 'completed');
+                actions.appendChild(completeBtn);
+            }
+            container.appendChild(card);
+        });
+    }
 
     async respondBooking(bookingId, status) {
         const token = getCookie('token');
@@ -542,8 +603,6 @@ renderProviderBookings(bookings) {
         document.getElementById('service-form')?.addEventListener('submit', (e) => this.createOrEditService(e));
     }
 }
-
-
 
 async function fetchProviderReviews(providerId) {
     if (!providerId) return [];
@@ -658,7 +717,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-   
     document.getElementById('profile-icon')?.addEventListener('click', function(e) {
         e.preventDefault();
         document.getElementById('auth-dropdown')?.classList.toggle('show');
@@ -673,7 +731,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('auth-dropdown')?.classList.remove('show');
         }
     });
-
 
     new ProviderDashboard();
     setupDropdownLogic();

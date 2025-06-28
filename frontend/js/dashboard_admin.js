@@ -8,7 +8,6 @@ function getCookie(name) {
     return null;
 }
 
-// Helper to show/hide dropdown auth UI appropriately
 function updateAuthDropdownUI(isAuthenticated, user) {
     const userInfo = document.getElementById('user-info');
     const googleLogin = document.getElementById('google-login');

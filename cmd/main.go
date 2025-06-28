@@ -34,6 +34,7 @@ func main() {
 		&models.Booking{},
 		&models.Review{},
 		&models.Message{},
+		&models.ProviderMessage{},
 	); err != nil {
 		log.Fatal("AutoMigrate failed: ", err)
 	}

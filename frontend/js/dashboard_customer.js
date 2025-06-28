@@ -406,13 +406,22 @@ async function renderReceivedProviderMessages() {
         }
         container.innerHTML = '';
         messages.forEach(msg => {
+            const booking = msg.booking || msg.Booking;
+            const bookingInfo = booking ? `
+                <div style="background:#f6f7fa;padding:0.5em 1em;border-radius:7px;margin-bottom:0.7em;">
+                    <div><b>Service:</b> ${escapeHtml(booking.Service?.name || booking.Service?.Name || 'Service')}</div>
+                    <div><b>Date:</b> ${formatDate(booking.booking_time || booking.BookingTime)}</div>
+                    <div><b>Status:</b> ${escapeHtml(booking.status || booking.Status || '')}</div>
+                    <div><b>Address:</b> ${escapeHtml(booking.address || '')}</div>
+                    ${booking.special_notes ? `<div><b>Notes:</b> ${escapeHtml(booking.special_notes)}</div>` : ''}
+                </div>
+            ` : '';
             const msgDiv = document.createElement('div');
             msgDiv.className = 'admin-message-item';
             msgDiv.innerHTML = `
                 <div style="font-weight:bold; margin-bottom:0.25em;">${escapeHtml(msg.title || "Provider Message")}</div>
-                <div style="margin-bottom:0.5em; color:#334155;">
-                    ${escapeHtml(msg.content || msg.Content)}
-                </div>
+                <div style="margin-bottom:0.5em; color:#334155;">${escapeHtml(msg.content || msg.Content)}</div>
+                ${bookingInfo}
                 <div style="font-size:0.9em;color:#888;">${msg.created_at ? new Date(msg.created_at).toLocaleString() : ''}</div>
                 <hr>
             `;

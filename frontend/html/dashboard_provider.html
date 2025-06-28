@@ -101,6 +101,26 @@
         </div>
     </section>
 </main>
+<div id="provider-message-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.24); z-index:9999; align-items:center; justify-content:center;">
+  <div class="modal-content" style="background:#fff; border-radius:8px; padding:2em; max-width:400px; margin:auto; position:relative;">
+    <span class="close" id="close-provider-message-modal" style="position:absolute; right:1em; top:1em; font-size:1.5em; cursor:pointer;">&times;</span>
+    <h3 style="margin-top:0; margin-bottom:1em;">Send Message to Customer</h3>
+    <form id="provider-message-form">
+      <input type="hidden" id="provider-message-booking-id">
+      <input type="hidden" id="provider-message-customer-id">
+      <div style="margin-bottom:1em;">
+        <label for="provider-message-title">Title:</label>
+        <input type="text" id="provider-message-title" class="form-control" required style="width:100%;">
+      </div>
+      <div style="margin-bottom:1em;">
+        <label for="provider-message-content">Message:</label>
+        <textarea id="provider-message-content" class="form-control" rows="4" required style="width:100%;"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Send</button>
+    </form>
+    <div id="provider-message-status" style="margin-top:1em; color:#16a34a;"></div>
+  </div>
+</div>
 <script src="../js/dashboard_provider.js"></script>
 </body>
 </html>

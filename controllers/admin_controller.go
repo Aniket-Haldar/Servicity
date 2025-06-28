@@ -179,7 +179,7 @@ func GetAdminSentMessages(db *gorm.DB) fiber.Handler {
 			Where("admin_id = ?", adminID).
 			Order("created_at desc").
 			Find(&msgs).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{"error": "DB error"})
+			return c.Status(500).JSON(fiber.Map{"error": "Error in Database"})
 		}
 		return c.JSON(msgs)
 	}
