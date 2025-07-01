@@ -47,6 +47,7 @@
     <aside class="admin-sidebar">
         <button class="sidebar-btn active" data-section="analytics">📊 Analytics</button>
         <button class="sidebar-btn" data-section="users">👥 Users/Providers</button>
+        <button class="sidebar-btn" data-section="provider-requests">🔔 Provider Requests</button>
         <button class="sidebar-btn" data-section="categories">🗂️ Categories</button>
         <button class="sidebar-btn" data-section="messages">✉️ Messages</button>
     </aside>
@@ -72,6 +73,19 @@
             </div>
             <div id="users-list"></div>
         </div>
+        
+        <!-- NEW: Provider Requests Section -->
+        <div id="section-provider-requests" class="dashboard-section">
+            <h2 class="section-title">Provider Requests</h2>
+            <div class="request-filters">
+                <button class="tab-btn active" data-status="">All Requests</button>
+                <button class="tab-btn" data-status="Pending">Pending</button>
+                <button class="tab-btn" data-status="Approved">Approved</button>
+                <button class="tab-btn" data-status="Rejected">Rejected</button>
+            </div>
+            <div id="provider-requests-list"></div>
+        </div>
+        
         <div id="section-categories" class="dashboard-section">
             <h2 class="section-title">Service Categories</h2>
             <form id="add-category-form">
@@ -96,7 +110,6 @@
     </form>
     <div id="message-status"></div>
 
-    <!-- ADD THIS BLOCK BELOW THE FORM: -->
     <div style="margin-top:2em;">
         <h3>Sent Messages</h3>
         <div id="sent-messages" style="max-height:300px;overflow:auto;"></div>
@@ -104,5 +117,31 @@
 </div>
     </section>
 </main>
+
+<div id="provider-request-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeProviderModal()">&times;</span>
+        <h2>Update Provider Status</h2>
+        <div id="provider-details"></div>
+        <form id="provider-status-form">
+            <div class="form-group">
+                <label>Action:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="status" value="Approved" required> Approve</label>
+                    <label><input type="radio" name="status" value="Rejected" required> Reject</label>
+                </div>
+            </div>
+            <div class="form-group" id="reason-group" style="display: none;">
+                <label for="rejection-reason">Reason for Rejection:</label>
+                <textarea id="rejection-reason" rows="3" placeholder="Please provide a reason..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="closeProviderModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update Status</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 </body>
 </html>

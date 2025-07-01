@@ -1,9 +1,14 @@
 package controllers
 
 import (
+	"errors"
+	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/Aniket-Haldar/Servicity/models"
+	"github.com/Aniket-Haldar/Servicity/utils"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -182,5 +187,114 @@ func GetAdminSentMessages(db *gorm.DB) fiber.Handler {
 			return c.Status(500).JSON(fiber.Map{"error": "Error in Database"})
 		}
 		return c.JSON(msgs)
+	}
+}
+
+func AdminListProviderRequests(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		status := c.Query("status")
+
+		var providers []struct {
+			ID               uint      `json:"id"`
+			UserID           uint      `json:"user_id"`
+			Profession       string    `json:"profession"`
+			Pincode          string    `json:"pincode"`
+			Pricing          float64   `json:"pricing"`
+			AvailableTimings string    `json:"available_timings"`
+			Status           string    `json:"status"`
+			CreatedAt        time.Time `json:"created_at"`
+			UserName         string    `json:"user_name"`
+			UserEmail        string    `json:"user_email"`
+			UserBlocked      bool      `json:"user_blocked"`
+		}
+
+		query := db.Table("provider_profiles").
+			Select(`provider_profiles.id, provider_profiles.user_id, provider_profiles.profession, 
+					provider_profiles.pincode, provider_profiles.pricing, provider_profiles.available_timings, 
+					provider_profiles.status, provider_profiles.created_at,
+					users.name as user_name, users.email as user_email, users.blocked as user_blocked`).
+			Joins("JOIN users ON provider_profiles.user_id = users.id").
+			Where("users.deleted_at IS NULL AND provider_profiles.deleted_at IS NULL")
+
+		if status != "" {
+			query = query.Where("provider_profiles.status = ?", status)
+		}
+
+		if err := query.Order("provider_profiles.created_at DESC").Find(&providers).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to fetch provider requests",
+			})
+		}
+
+		return c.JSON(providers)
+	}
+}
+
+func AdminUpdateProviderStatus(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		idStr := c.Params("id")
+		providerID, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid provider ID",
+			})
+		}
+
+		var req struct {
+			Status string `json:"status"`
+			Reason string `json:"reason,omitempty"`
+		}
+
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid request body",
+			})
+		}
+
+		if req.Status != "Approved" && req.Status != "Rejected" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Status must be 'Approved' or 'Rejected'",
+			})
+		}
+
+		err = db.Transaction(func(tx *gorm.DB) error {
+			var provider models.ProviderProfile
+			if err := tx.First(&provider, providerID).Error; err != nil {
+				return err
+			}
+
+			var user models.User
+			if err := tx.First(&user, provider.UserID).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Model(&provider).Update("status", req.Status).Error; err != nil {
+				return err
+			}
+
+			go func() {
+				if err := utils.SendProviderStatusEmail(user.Email, user.Name, req.Status, req.Reason); err != nil {
+					fmt.Printf("Failed to send email to %s: %v\n", user.Email, err)
+				}
+			}()
+
+			return nil
+		})
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+					"error": "Provider not found",
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to update status",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"status":  "success",
+			"message": fmt.Sprintf("Provider %s successfully", strings.ToLower(req.Status)),
+		})
 	}
 }

@@ -286,6 +286,249 @@
     0% { transform: rotate(0deg);}
     100% { transform: rotate(360deg);}
 }
+
+.request-filters {
+    margin-bottom: 1.2em;
+}
+
+.provider-request-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.2em;
+    margin-bottom: 1em;
+    transition: all 0.2s ease;
+}
+
+.provider-request-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8em;
+    padding-bottom: 0.8em;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.provider-info h4 {
+    margin: 0;
+    color: var(--primary-dark);
+    font-size: 1.1em;
+}
+
+.provider-info p {
+    margin: 0.2em 0 0 0;
+    color: var(--gray);
+    font-size: 0.9em;
+}
+
+.status-badge {
+    padding: 0.3em 0.8em;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-badge.approved {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.status-badge.rejected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.request-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1em;
+    margin-bottom: 1em;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item strong {
+    color: var(--dark);
+    font-size: 0.85em;
+    margin-bottom: 0.2em;
+}
+
+.detail-item span {
+    color: var(--gray);
+    font-size: 0.95em;
+}
+
+.request-actions {
+    display: flex;
+    gap: 0.8em;
+    margin-top: 1em;
+}
+
+.btn-approve {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: opacity 0.2s;
+}
+
+.btn-approve:hover {
+    opacity: 0.9;
+}
+
+.btn-reject {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: opacity 0.2s;
+}
+
+.btn-reject:hover {
+    opacity: 0.9;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 2em;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--gray);
+}
+
+.close-btn:hover {
+    color: var(--dark);
+}
+
+.form-group {
+    margin-bottom: 1.2em;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-weight: normal;
+    cursor: pointer;
+    padding: 0.5em;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.radio-group label:hover {
+    background: #f3f4f6;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 0.8em;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1em;
+    justify-content: flex-end;
+    margin-top: 1.5em;
+    padding-top: 1em;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 0.6em 1.2em;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .request-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5em;
+    }
+    
+    .request-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .request-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
 /* Responsive */
 @media (max-width: 900px) {
     .admin-dashboard-main { flex-direction: column; }

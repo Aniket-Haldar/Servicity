@@ -247,7 +247,6 @@ func PutProfile(db *gorm.DB) fiber.Handler {
 			if err := db.Save(&user).Error; err != nil {
 				return c.Status(500).JSON(fiber.Map{"error": "Failed to update admin user"})
 			}
-			// Optionally, cleanup any profile records if they exist
 			_ = db.Where("user_id = ?", profileID).Delete(&models.ProviderProfile{})
 			_ = db.Where("user_id = ?", profileID).Delete(&models.CustomerProfile{})
 
@@ -360,12 +359,14 @@ func ProviderStatus(db *gorm.DB) fiber.Handler {
 		case "Approved":
 			return c.JSON(fiber.Map{"status": "Approved"})
 		case "Rejected":
-			// Delete provider profile and user in a transaction
+
 			err := db.Transaction(func(tx *gorm.DB) error {
-				if err := tx.Delete(&models.ProviderProfile{}, "user_id = ?", userID).Error; err != nil {
+
+				if err := tx.Unscoped().Delete(&models.ProviderProfile{}, "user_id = ?", userID).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&models.User{}, userID).Error; err != nil {
+
+				if err := tx.Unscoped().Delete(&models.User{}, userID).Error; err != nil {
 					return err
 				}
 				return nil

@@ -1,6 +1,9 @@
 const API_BASE = "http://localhost:3000/admin";
 const API_BASE_URL = "http://localhost:3000";
 
+
+let currentProviderRequestId = null;
+
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -76,7 +79,6 @@ function setupDropdownLogic() {
     document.getElementById('logout-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
         document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        // Optionally update UI immediately if you are not redirecting
         updateAuthDropdownUI(false);
         window.location.href = "index.html";
     });
@@ -129,104 +131,158 @@ function showAuthError(msg) {
     `;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const isAdmin = await checkAdminAuth();
-    if (!isAdmin) return;
 
-    document.querySelectorAll('.sidebar-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const section = this.getAttribute('data-section');
-            document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById('section-' + section).classList.add('active');
-        });
-    });
-
-    renderAnalytics();
-
-    const userTabs = document.querySelectorAll('.tab-btn');
-    userTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            userTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            renderUsers(this.getAttribute('data-type'));
-        });
-    });
-    renderUsers('Provider');
-
-    renderCategories();
-    document.getElementById('add-category-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const input = document.getElementById('new-category-input');
-        const val = input.value.trim();
-        if (val) {
-            fetch(`${API_BASE}/categories`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...getAuthHeader()
-                },
-                body: JSON.stringify({ category: val })
-            }).then(res => res.json()).then(() => {
-                renderCategories();
-                input.value = '';
+function renderProviderRequests(status) {
+    const list = document.getElementById('provider-requests-list');
+    list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading provider requests...</div>';
+    
+    const url = `${API_BASE}/provider-requests${status ? `?status=${status}` : ''}`;
+    
+    fetch(url, { headers: getAuthHeader() })
+        .then(res => res.json())
+        .then(requests => {
+            list.innerHTML = '';
+            if (!Array.isArray(requests) || requests.length === 0) {
+                list.innerHTML = '<div class="empty-message">No provider requests found.</div>';
+                return;
+            }
+            
+            requests.forEach(request => {
+                const requestDiv = document.createElement('div');
+                requestDiv.className = 'provider-request-item';
+                requestDiv.innerHTML = `
+                    <div class="request-header">
+                        <div class="provider-info">
+                            <h4>${request.user_name || 'N/A'}</h4>
+                            <p>${request.user_email || 'N/A'}</p>
+                        </div>
+                        <span class="status-badge ${request.status.toLowerCase()}">${request.status}</span>
+                    </div>
+                    <div class="request-details">
+                        <div class="detail-item">
+                            <strong>Profession</strong>
+                            <span>${request.profession || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Location</strong>
+                            <span>${request.pincode || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Pricing</strong>
+                            <span>${request.pricing ? `₹${request.pricing}` : 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Available Timings</strong>
+                            <span>${request.available_timings || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Applied Date</strong>
+                            <span>${new Date(request.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Account Status</strong>
+                            <span>${request.user_blocked ? 'Blocked' : 'Active'}</span>
+                        </div>
+                    </div>
+                    ${request.status === 'Pending' ? `
+                        <div class="request-actions">
+                            <button class="btn-approve" onclick="openProviderModal(${request.id}, 'Approved')">
+                                ✓ Approve
+                            </button>
+                            <button class="btn-reject" onclick="openProviderModal(${request.id}, 'Rejected')">
+                                ✗ Reject
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+                list.appendChild(requestDiv);
             });
-        }
-    });
-
-    document.getElementById('categories-list').addEventListener('click', function(e) {
-        if (e.target.tagName === "BUTTON") {
-            const cat = e.target.dataset.category;
-            fetch(`${API_BASE}/categories/${encodeURIComponent(cat)}`, {
-                method: "DELETE",
-                headers: getAuthHeader()
-            }).then(() => renderCategories());
-        }
-    });
-
-    document.getElementById('users-list').addEventListener('click', function(e) {
-        if (e.target.tagName === "BUTTON") {
-            const id = e.target.dataset.id;
-            const type = e.target.dataset.type;
-            const blocked = e.target.dataset.blocked === 'true';
-            fetch(`${API_BASE}/users/${id}/blocked`, {
-                method: "PUT",
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...getAuthHeader()
-                },
-                body: JSON.stringify({ blocked: !blocked })
-            }).then(() => renderUsers(type));
-        }
-    });
-
-    // Send custom messages
-    document.getElementById('message-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const target = document.getElementById('message-target').value;
-        const content = document.getElementById('message-content').value.trim();
-        if (!content) return;
-        fetch(`${API_BASE}/messages`, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                ...getAuthHeader()
-            },
-            body: JSON.stringify({ target_role: target, content })
-        }).then(res => res.json()).then(() => {
-            document.getElementById('message-status').textContent = `Message sent to ${target}`;
-            setTimeout(() => document.getElementById('message-status').textContent = '', 2000);
-            document.getElementById('message-form').reset();
-
-            renderSentMessages();
+        })
+        .catch(() => {
+            list.innerHTML = '<div class="error-message">Failed to load provider requests.</div>';
         });
-    });
+}
 
-    renderSentMessages();
-    showAuthUI();
-    setupDropdownLogic();
-});
+function openProviderModal(providerId, suggestedStatus) {
+    currentProviderRequestId = providerId;
+    const modal = document.getElementById('provider-request-modal');
+    const form = document.getElementById('provider-status-form');
+    
+
+    form.reset();
+    document.getElementById('reason-group').style.display = 'none';
+    
+
+    if (suggestedStatus) {
+        const radio = document.querySelector(`input[name="status"][value="${suggestedStatus}"]`);
+        if (radio) {
+            radio.checked = true;
+            if (suggestedStatus === 'Rejected') {
+                document.getElementById('reason-group').style.display = 'block';
+            }
+        }
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function closeProviderModal() {
+    document.getElementById('provider-request-modal').style.display = 'none';
+    currentProviderRequestId = null;
+}
+
+function updateProviderStatus() {
+    if (!currentProviderRequestId) return;
+    
+    const status = document.querySelector('input[name="status"]:checked').value;
+    const reason = document.getElementById('rejection-reason').value.trim();
+    
+    const data = { status };
+    if (status === 'Rejected' && reason) {
+        data.reason = reason;
+    }
+    
+    fetch(`${API_BASE}/provider-requests/${currentProviderRequestId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (response.status === 'success') {
+            closeProviderModal();
+    
+            const activeTab = document.querySelector('#section-provider-requests .tab-btn.active');
+            renderProviderRequests(activeTab.getAttribute('data-status'));
+            
+           
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'success-message';
+            messageDiv.textContent = response.message;
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--accent);
+                color: white;
+                padding: 1em 1.5em;
+                border-radius: 6px;
+                z-index: 1001;
+            `;
+            document.body.appendChild(messageDiv);
+            setTimeout(() => messageDiv.remove(), 3000);
+        } else {
+            alert('Error: ' + (response.error || 'Failed to update status'));
+        }
+    })
+    .catch(err => {
+        console.error('Error updating status:', err);
+        alert('Failed to update provider status');
+    });
+}
 
 function renderAnalytics() {
     fetch(`${API_BASE}/analytics`, { headers: getAuthHeader() })
@@ -260,37 +316,63 @@ function renderAnalytics() {
         });
 }
 
-function renderUsers(type) {
-    fetch(`${API_BASE}/users?role=${type}`, { headers: getAuthHeader() })
-        .then(res => res.json())
-        .then(users => {
-            const list = document.getElementById('users-list');
-            list.innerHTML = '';
-            if (!Array.isArray(users)) {
-                list.innerHTML = '<div class="error-message">Failed to load users. Please log in again.</div>';
-                return;
-            }
-            users.forEach(user => {
-                const row = document.createElement('div');
-                row.className = 'user-row';
-                row.innerHTML = `
-                    <div class="user-info">
-                        <strong>${user.name}</strong> <span style="color:#64748b;">${user.email}</span>
-                        ${user.blocked ? '<span style="color:#ef4444;font-weight:500;margin-left:1em;">Blocked</span>' : ''}
-                    </div>
-                    <div class="user-actions">
-                        <button class="${user.blocked ? 'unblock' : ''}" data-id="${user.ID}" data-type="${type}" data-blocked="${user.blocked}">
-                            ${user.blocked ? 'Unblock' : 'Block'}
-                        </button>
-                    </div>
-                `;
-                list.appendChild(row);
-            });
-        })
-        .catch(() => {
-            document.getElementById('users-list').innerHTML = '<div class="error-message">Failed to load users. Please log in again.</div>';
+
+async function renderUsers(type) {
+    try {
+        const [usersRes, providersRes] = await Promise.all([
+            fetch(`${API_BASE}/users?role=${type}`, { headers: getAuthHeader() }),
+            type === 'Provider' ? 
+                fetch(`${API_BASE}/provider-requests?status=Approved`, { headers: getAuthHeader() }) : 
+                Promise.resolve({ json: () => [] })
+        ]);
+        
+        const users = await usersRes.json();
+        const approvedProviders = await providersRes.json();
+        
+        const list = document.getElementById('users-list');
+        list.innerHTML = '';
+        
+        if (!Array.isArray(users)) {
+            list.innerHTML = '<div class="error-message">Failed to load users. Please log in again.</div>';
+            return;
+        }
+        
+        let filteredUsers = users;
+        
+
+        if (type === 'Provider' && Array.isArray(approvedProviders)) {
+            const approvedUserIds = approvedProviders.map(p => p.user_id);
+            filteredUsers = users.filter(user => approvedUserIds.includes(user.ID));
+        }
+        
+        if (filteredUsers.length === 0) {
+            list.innerHTML = `<div class="empty-message">No ${type === 'Provider' ? 'approved providers' : 'customers'} found.</div>`;
+            return;
+        }
+        
+        filteredUsers.forEach(user => {
+            const row = document.createElement('div');
+            row.className = 'user-row';
+            row.innerHTML = `
+                <div class="user-info">
+                    <strong>${user.name}</strong> <span style="color:#64748b;">${user.email}</span>
+                    ${user.blocked ? '<span style="color:#ef4444;font-weight:500;margin-left:1em;">Blocked</span>' : ''}
+                    ${type === 'Provider' ? '<span style="color:#27AE60;font-weight:500;margin-left:1em;">✓ Approved</span>' : ''}
+                </div>
+                <div class="user-actions">
+                    <button class="${user.blocked ? 'unblock' : ''}" data-id="${user.ID}" data-type="${type}" data-blocked="${user.blocked}">
+                        ${user.blocked ? 'Unblock' : 'Block'}
+                    </button>
+                </div>
+            `;
+            list.appendChild(row);
         });
+        
+    } catch (error) {
+        document.getElementById('users-list').innerHTML = '<div class="error-message">Failed to load users. Please log in again.</div>';
+    }
 }
+
 
 function renderCategories() {
     fetch(`${API_BASE}/categories`, { headers: getAuthHeader() })
@@ -316,6 +398,7 @@ function renderCategories() {
             document.getElementById('categories-list').innerHTML = '<li>Failed to load categories.</li>';
         });
 }
+
 
 function renderSentMessages() {
     const sentMessagesDiv = document.getElementById('sent-messages');
@@ -350,3 +433,148 @@ function renderSentMessages() {
             sentMessagesDiv.innerHTML = '<div class="error-message">Failed to load sent messages.</div>';
         });
 }
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) return;
+
+
+    document.querySelectorAll('.sidebar-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const section = this.getAttribute('data-section');
+            document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('section-' + section).classList.add('active');
+            
+      
+            if (section === 'provider-requests') {
+                renderProviderRequests('');
+            }
+        });
+    });
+
+ 
+    renderAnalytics();
+
+
+    const userTabs = document.querySelectorAll('#section-users .tab-btn');
+    userTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            userTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            renderUsers(this.getAttribute('data-type'));
+        });
+    });
+    renderUsers('Provider');
+
+    const requestTabs = document.querySelectorAll('#section-provider-requests .tab-btn');
+    requestTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            requestTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            renderProviderRequests(this.getAttribute('data-status'));
+        });
+    });
+
+
+    document.getElementById('provider-status-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        updateProviderStatus();
+    });
+
+
+    document.querySelectorAll('input[name="status"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const reasonGroup = document.getElementById('reason-group');
+            reasonGroup.style.display = this.value === 'Rejected' ? 'block' : 'none';
+        });
+    });
+
+
+    renderCategories();
+    document.getElementById('add-category-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const input = document.getElementById('new-category-input');
+        const val = input.value.trim();
+        if (val) {
+            fetch(`${API_BASE}/categories`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                },
+                body: JSON.stringify({ category: val })
+            }).then(res => res.json()).then(() => {
+                renderCategories();
+                input.value = '';
+            });
+        }
+    });
+
+ 
+    document.getElementById('categories-list').addEventListener('click', function(e) {
+        if (e.target.tagName === "BUTTON") {
+            const cat = e.target.dataset.category;
+            fetch(`${API_BASE}/categories/${encodeURIComponent(cat)}`, {
+                method: "DELETE",
+                headers: getAuthHeader()
+            }).then(() => renderCategories());
+        }
+    });
+
+
+    document.getElementById('users-list').addEventListener('click', function(e) {
+        if (e.target.tagName === "BUTTON") {
+            const id = e.target.dataset.id;
+            const type = e.target.dataset.type;
+            const blocked = e.target.dataset.blocked === 'true';
+            fetch(`${API_BASE}/users/${id}/blocked`, {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                },
+                body: JSON.stringify({ blocked: !blocked })
+            }).then(() => renderUsers(type));
+        }
+    });
+
+
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const target = document.getElementById('message-target').value;
+        const content = document.getElementById('message-content').value.trim();
+        if (!content) return;
+        fetch(`${API_BASE}/messages`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({ target_role: target, content })
+        }).then(res => res.json()).then(() => {
+            document.getElementById('message-status').textContent = `Message sent to ${target}`;
+            setTimeout(() => document.getElementById('message-status').textContent = '', 2000);
+            document.getElementById('message-form').reset();
+            renderSentMessages();
+        });
+    });
+
+    renderSentMessages();
+    showAuthUI();
+    setupDropdownLogic();
+
+
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('provider-request-modal');
+        if (e.target === modal) {
+            closeProviderModal();
+        }
+    });
+});
+
+
+window.openProviderModal = openProviderModal;
+window.closeProviderModal = closeProviderModal;

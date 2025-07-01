@@ -280,7 +280,7 @@ async function checkAuthStatus() {
             if (data.role && data.role.toLowerCase() === 'provider') {
                 isAdmin = true; 
             }
-            if (!data.name) {
+            if (!data.role) {
                 window.location.href = '/onboarding';
             }
             return true;

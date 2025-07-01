@@ -31,6 +31,8 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	admin.Get("/analytics", middleware.RequireAuth, controllers.AdminAnalytics(db))
 	admin.Post("/messages", middleware.RequireAuth, controllers.AdminSendMessage(db))
 	admin.Get("/messages/sent", middleware.RequireAuth, controllers.GetAdminSentMessages(db))
+	admin.Get("/provider-requests", middleware.RequireAuth, controllers.AdminListProviderRequests(db))
+	admin.Put("/provider-requests/:id/status", middleware.RequireAuth, controllers.AdminUpdateProviderStatus(db))
 
 	service := app.Group("/services")
 
