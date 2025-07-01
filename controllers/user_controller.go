@@ -62,6 +62,7 @@ func UpdateProfile(db *gorm.DB) fiber.Handler {
 					Pincode:          input.Pincode,
 					Pricing:          input.Pricing,
 					AvailableTimings: input.AvailableTimings,
+					Status:           "Pending",
 				}
 				if err := tx.Where(models.ProviderProfile{UserID: userID}).
 					Assign(providerProfile).
@@ -312,5 +313,71 @@ func GetUserByID(db *gorm.DB) fiber.Handler {
 		}
 
 		return c.JSON(response)
+	}
+}
+func ProviderStatus(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userID, ok := c.Locals("userID").(uint)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Unauthorized: invalid user ID",
+			})
+		}
+
+		var user models.User
+		if err := db.First(&user, userID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+					"error": "User not found",
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to retrieve user data",
+			})
+		}
+
+		if user.Role != "Provider" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Not a provider user",
+			})
+		}
+
+		var profile models.ProviderProfile
+		if err := db.Where("user_id = ?", userID).First(&profile).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Provider profile not found",
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to retrieve provider profile",
+			})
+		}
+
+		switch profile.Status {
+		case "Pending":
+			return c.JSON(fiber.Map{"status": "Pending"})
+		case "Approved":
+			return c.JSON(fiber.Map{"status": "Approved"})
+		case "Rejected":
+			// Delete provider profile and user in a transaction
+			err := db.Transaction(func(tx *gorm.DB) error {
+				if err := tx.Delete(&models.ProviderProfile{}, "user_id = ?", userID).Error; err != nil {
+					return err
+				}
+				if err := tx.Delete(&models.User{}, userID).Error; err != nil {
+					return err
+				}
+				return nil
+			})
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"error": "Failed to process rejected status",
+				})
+			}
+			return c.JSON(fiber.Map{"status": "Rejected"})
+		default:
+			return c.JSON(fiber.Map{"status": "Unknown"})
+		}
 	}
 }

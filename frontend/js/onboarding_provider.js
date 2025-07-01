@@ -6,15 +6,18 @@ function getCookie(name) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('onboarding-form');
+    const form = document.getElementById('onboarding-provider-form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
         const formData = {
             name: document.getElementById('name').value,
             phone: document.getElementById('phone').value,
-            role: 'Customer', // Always set to Customer
-            address: document.getElementById('address').value
+            role: 'Provider',
+            profession: document.getElementById('profession').value,
+            pincode: document.getElementById('pincode').value,
+            pricing: parseFloat(document.getElementById('pricing').value),
+            availableTimings: document.getElementById('availableTimings').value
         };
 
         try {
@@ -29,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (response.ok) {
-                window.location.href = 'index.html'; 
+                window.location.href = 'application_status.html'; 
             } else {
                 const errorData = await response.json();
                 alert(`Error: ${errorData.error || 'Failed to update profile'}`);
@@ -43,6 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if user is logged in
     const token = getCookie('token');
     if (!token) {
-        window.location.href = 'localhost:3000/auth/google/login';
+        window.location.href = 'http://localhost:3000/auth/google/login';
     }
 });

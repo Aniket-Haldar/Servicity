@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servicity | Complete Your Profile</title>
+    <title>Servicity | Complete Your Profile (Provider)</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/onboarding.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,11 +12,11 @@
     <div class="onboarding-container">
         <div class="onboarding-header">
             <img src="../images/logo.png" alt="Servicity" class="logo">
-            <h1>Complete Your Profile</h1>
-            <p>Tell us more about yourself to get started</p>
+            <h1>Provider Profile Setup</h1>
+            <p>Tell us about your services to get started</p>
         </div>
 
-        <form id="onboarding-form">
+        <form id="onboarding-provider-form">
             <div class="form-section">
                 <h2>Basic Information</h2>
                 <div class="form-group">
@@ -29,12 +29,23 @@
                 </div>
             </div>
 
-            <!-- Only customer fields -->
-            <div id="customer-fields" class="form-section">
-                <h2>Customer Details</h2>
+            <div id="provider-fields" class="form-section">
+                <h2>Service Provider Details</h2>
                 <div class="form-group">
-                    <label for="address">Address</label>
-                    <textarea id="address" name="address" rows="3" required></textarea>
+                    <label for="profession">Profession</label>
+                    <input type="text" id="profession" name="profession" required>
+                </div>
+                <div class="form-group">
+                    <label for="pincode">Service Area Pincode</label>
+                    <input type="text" id="pincode" name="pincode" required>
+                </div>
+                <div class="form-group">
+                    <label for="pricing">Hourly Rate (₹)</label>
+                    <input type="number" id="pricing" name="pricing" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="availableTimings">Available Timings</label>
+                    <input type="text" id="availableTimings" name="availableTimings" placeholder="e.g. 9am-5pm, Mon-Fri">
                 </div>
             </div>
 
@@ -44,6 +55,6 @@
         </form>
     </div>
 
-    <script src="../js/onboarding.js"></script>
+    <script src="../js/onboarding_provider.js"></script>
 </body>
 </html>

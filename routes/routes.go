@@ -12,6 +12,7 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	profile := app.Group("/profile")
 	profile.Post("/update", middleware.RequireAuth, controllers.UpdateProfile(db))
 	profile.Get("/details", middleware.RequireAuth, controllers.GetProfile(db))
+	profile.Get("/status", middleware.RequireAuth, controllers.ProviderStatus(db))
 	profile.Put("/:id", middleware.RequireAuth, controllers.PutProfile(db))
 	profile.Get("/:id", middleware.RequireAuth, controllers.GetUserByID(db))
 

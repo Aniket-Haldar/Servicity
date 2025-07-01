@@ -1,0 +1,58 @@
+.status-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fe;
+}
+
+.status-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 30px rgba(67, 97, 238, 0.08);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.status-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.pending {
+    color: #4361ee;
+}
+
+.rejected {
+    color: #e84545;
+}
+
+.status-title {
+    font-size: 1.7rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #22223b;
+}
+
+.status-desc {
+    color: #4a4e69;
+    margin-bottom: 2rem;
+}
+
+.home-btn {
+    background: #4361ee;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.home-btn:hover {
+    background: #3a56d4;
+}

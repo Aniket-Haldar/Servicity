@@ -20,7 +20,9 @@
     padding: 0;
     box-sizing: border-box;
 }
-
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
 body {
     font-family: 'Poppins', sans-serif;
     color: var(--dark);

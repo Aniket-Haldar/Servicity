@@ -11,4 +11,5 @@ type ProviderProfile struct {
 	Pincode          string
 	Pricing          float64
 	AvailableTimings string
+	Status           string `json:"status" gorm:"default:Pending"`
 }
