@@ -234,7 +234,7 @@ document.getElementById('dashboard-link')?.addEventListener('click', async funct
         if (!response.ok) throw new Error('Failed to fetch user profile');
         const data = await response.json();
         console.log(data);
-        if (data.role === 'Provider' && data.status==='Approved') {
+        if (data.role === 'Provider' && data.profile.status=='Approved') {
             window.location.href = 'dashboard_provider.html';
         } else if (data.role==='Admin') {
             window.location.href = 'dashboard_admin.html';
