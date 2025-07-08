@@ -42,20 +42,26 @@
         </button>
     </div>
 </nav>
+
 <main class="provider-dashboard-main">
     <aside class="provider-sidebar">
         <button class="sidebar-btn active" data-section="dashboard-home"><i class="fa fa-home"></i> <span>Dashboard</span></button>
         <button class="sidebar-btn" data-section="services"><i class="fa fa-briefcase"></i> <span>My Services</span></button>
         <button class="sidebar-btn" data-section="bookings"><i class="fa fa-calendar-check"></i> <span>Bookings</span></button>
         <button class="sidebar-btn" data-section="provider-reviews-section"><i class="fa fa-star"></i> <span>Reviews</span></button>
+        <button class="sidebar-btn" data-section="chat-section"><i class="fa fa-comments"></i> <span>Chat</span></button>
         <button class="sidebar-btn" data-section="admin-messages-section"><i class="fa fa-envelope"></i> <span>Admin Messages</span></button>
     </aside>
+
     <section class="provider-dashboard-content">
+        <!-- Dashboard Home -->
         <div id="dashboard-home" class="dashboard-section active">
             <h2 class="section-title"><i class="fa fa-home"></i> Provider Profile</h2>
             <div id="provider-details" class="profile-details-box">
             </div>
         </div>
+
+        <!-- Services -->
         <div id="services" class="dashboard-section">
             <div class="section-header">
                 <h2><i class="fa fa-briefcase"></i> My Services</h2>
@@ -87,40 +93,155 @@
             </div>
             <div id="provider-services" class="dashboard-list"></div>
         </div>
+
+        <!-- Bookings -->
         <div id="bookings" class="dashboard-section">
             <h2><i class="fa fa-calendar-check"></i> Customer Bookings</h2>
             <div id="provider-bookings" class="dashboard-list"></div>
         </div>
+
+        <!-- Reviews -->
         <div id="provider-reviews-section" class="dashboard-section">
             <h2><i class="fa fa-star"></i> Reviews for My Services</h2>
             <div id="provider-reviews-container" class="dashboard-list"></div>
         </div>
+
+        <!-- Chat Section -->
+        <div id="chat-section" class="dashboard-section">
+            <h2><i class="fa fa-comments"></i> Chat with Customers</h2>
+            <div class="chat-container">
+                <div class="chat-sidebar">
+                    <div class="chat-search">
+                        <input type="text" id="chat-search-input" placeholder="Search conversations...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="conversation-list" id="conversation-list">
+                        <!-- Conversations will be loaded here -->
+                    </div>
+                </div>
+                <div class="chat-main">
+                    <div class="chat-header" id="chat-header" style="display: none;">
+                        <div class="chat-user-info">
+                            <div class="chat-user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="chat-user-details">
+                                <h4 id="chat-user-name">Select a conversation</h4>
+                                <span id="chat-user-status">Click on a customer to start chatting</span>
+                            </div>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="btn-icon" id="chat-info-btn" title="Conversation Info">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="chat-welcome">
+                            <i class="fas fa-comments fa-3x"></i>
+                            <h3>Welcome to Chat</h3>
+                            <p>Select a conversation from the sidebar to start messaging with your customers</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-container" id="chat-input-container" style="display: none;">
+                        <form id="chat-form" class="chat-input-form">
+                            <div class="chat-input-wrapper">
+                                <input type="text" id="chat-message-input" placeholder="Type your message..." autocomplete="off">
+                                <button type="button" id="emoji-btn" class="btn-icon" title="Add Emoji">
+                                    <i class="fas fa-smile"></i>
+                                </button>
+                                <button type="button" id="attachment-btn" class="btn-icon" title="Attach File">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                            </div>
+                            <button type="submit" id="send-btn" class="btn-send" title="Send Message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Messages -->
         <div id="admin-messages-section" class="dashboard-section">
             <h2><i class="fa fa-envelope"></i> Messages from Admin</h2>
             <div id="admin-messages-list" class="dashboard-list"></div>
         </div>
     </section>
 </main>
+
+<!-- Provider Message Modal -->
 <div id="provider-message-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.24); z-index:9999; align-items:center; justify-content:center;">
-  <div class="modal-content" style="background:#fff; border-radius:8px; padding:2em; max-width:400px; margin:auto; position:relative;">
-    <span class="close" id="close-provider-message-modal" style="position:absolute; right:1em; top:1em; font-size:1.5em; cursor:pointer;">&times;</span>
-    <h3 style="margin-top:0; margin-bottom:1em;">Send Message to Customer</h3>
-    <form id="provider-message-form">
-      <input type="hidden" id="provider-message-booking-id">
-      <input type="hidden" id="provider-message-customer-id">
-      <div style="margin-bottom:1em;">
-        <label for="provider-message-title">Title:</label>
-        <input type="text" id="provider-message-title" class="form-control" required style="width:100%;">
-      </div>
-      <div style="margin-bottom:1em;">
-        <label for="provider-message-content">Message:</label>
-        <textarea id="provider-message-content" class="form-control" rows="4" required style="width:100%;"></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Send</button>
-    </form>
-    <div id="provider-message-status" style="margin-top:1em; color:#16a34a;"></div>
-  </div>
+    <div class="modal-content" style="background:#fff; border-radius:8px; padding:2em; max-width:400px; margin:auto; position:relative;">
+        <span class="close" id="close-provider-message-modal" style="position:absolute; right:1em; top:1em; font-size:1.5em; cursor:pointer;">&times;</span>
+        <h3 style="margin-top:0; margin-bottom:1em;">Send Message to Customer</h3>
+        <form id="provider-message-form">
+            <input type="hidden" id="provider-message-booking-id">
+            <input type="hidden" id="provider-message-customer-id">
+            <div style="margin-bottom:1em;">
+                <label for="provider-message-title">Title:</label>
+                <input type="text" id="provider-message-title" class="form-control" required style="width:100%;">
+            </div>
+            <div style="margin-bottom:1em;">
+                <label for="provider-message-content">Message:</label>
+                <textarea id="provider-message-content" class="form-control" rows="4" required style="width:100%;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Send</button>
+        </form>
+        <div id="provider-message-status" style="margin-top:1em; color:#16a34a;"></div>
+    </div>
 </div>
+
+<!-- Chat Info Modal -->
+<<div id="chat-section" class="dashboard-section">
+    <h2><i class="fa fa-comments"></i> Chat with Customers</h2>
+    <div class="chat-container">
+        <div class="chat-sidebar">
+            <div class="chat-search">
+                <input type="text" id="chat-search-input" placeholder="Search conversations...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="conversation-list" id="conversation-list">
+            </div>
+        </div>
+        <div class="chat-main">
+            <div class="chat-header" id="chat-header" style="display: none;">
+                <div class="chat-user-info">
+                    <div class="chat-user-avatar" id="chat-header-avatar">AH</div>
+                    <div class="chat-user-details">
+                        <h4 id="chat-user-name">Select a conversation</h4>
+                        <span id="chat-user-status">Click on a customer to start chatting</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="btn-icon" id="chat-info-btn" title="Conversation Info">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+            </div>
+            <div class="chat-input-container" id="chat-input-container" style="display: none;">
+                <form id="chat-form" class="chat-input-form">
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="chat-message-input" placeholder="Type your message..." autocomplete="off">
+                        <button type="button" id="emoji-btn" class="btn-icon" title="Add Emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button type="button" id="attachment-btn" class="btn-icon" title="Attach File">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                    </div>
+                    <button type="submit" id="send-btn" class="btn-send" title="Send Message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="../js/dashboard_provider.js"></script>
 </body>
 </html>

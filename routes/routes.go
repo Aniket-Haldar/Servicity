@@ -3,11 +3,19 @@ package routes
 import (
 	"github.com/Aniket-Haldar/Servicity/controllers"
 	"github.com/Aniket-Haldar/Servicity/middleware"
+	"github.com/Aniket-Haldar/Servicity/websocket"
 	"github.com/gofiber/fiber/v2"
+	fiberws "github.com/gofiber/websocket/v2"
 	"gorm.io/gorm"
 )
 
 func SetupRoutes(app *fiber.App, db *gorm.DB) {
+	// Initialize WebSocket Hub
+	hub := websocket.NewHub(db)
+	go hub.Run() // Start the hub in a goroutine
+
+	// Initialize Chat Controller
+	chatController := controllers.NewChatController(db, hub)
 
 	profile := app.Group("/profile")
 	profile.Post("/update", middleware.RequireAuth, controllers.UpdateProfile(db))
@@ -64,10 +72,29 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 
 	app.Get("/messages/received", middleware.RequireAuth, controllers.GetUserMessages(db))
 
+	chat := app.Group("/chat")
+	chat.Post("/rooms", middleware.RequireAuth, chatController.GetOrCreateRoom)
+	chat.Get("/rooms", middleware.RequireAuth, chatController.GetUserRooms)
+	chat.Get("/rooms/:roomId/messages", middleware.RequireAuth, chatController.GetMessages)
+	chat.Post("/rooms/:roomId/messages", middleware.RequireAuth, chatController.SendMessage)
+	chat.Put("/rooms/:roomId/read", middleware.RequireAuth, chatController.MarkAsRead)
+
+	app.Use("/ws", func(c *fiber.Ctx) error {
+
+		if fiberws.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+
+	app.Get("/ws/chat", fiberws.New(func(c *fiberws.Conn) {
+		hub.HandleWebSocket(c)
+	}))
+
 	auth := app.Group("/auth")
 	auth.Get("/google/login", controllers.GoogleLogin)
 	auth.Get("/google/callback", func(c *fiber.Ctx) error {
 		return controllers.GoogleCallback(db, c)
 	})
-
 }
