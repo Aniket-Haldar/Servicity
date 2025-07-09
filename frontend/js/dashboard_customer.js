@@ -34,12 +34,12 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 function formatDate(dateString) {
-    if (!dateString) return "Unknown";
+    if (!dateString) return "";
     try {
         const date = new Date(dateString);
-        return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleString();
+        return isNaN(date.getTime()) ? "" : date.toLocaleString();
     } catch (e) {
-        return "Unknown";
+        return "";
     }
 }
 
@@ -119,6 +119,191 @@ function setupDropdownLogic() {
     });
 }
 
+async function getCurrentCustomerUser() {
+    const token = getToken();
+    if (!token) return null;
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile/details`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Not logged in');
+        const data = await res.json();
+    
+        return {
+            id: data.profile.UserID,
+            name: data.name || data.Name || "",
+            email: data.email || data.Email || ""
+        };
+    } catch {
+        return null;
+    }
+}
+
+async function renderCustomerConversationList(roomIdToHighlight = null) {
+    const token = getToken();
+    const list = document.getElementById('customer-conversation-list');
+    list.innerHTML = '<div>Loading...</div>';
+    const currentUser = await getCurrentCustomerUser();
+    if (!currentUser) {
+        list.innerHTML = '<div class="error-message">Please log in to view chats.</div>';
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/chat/rooms?user_id=${currentUser.id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            list.innerHTML = '<div>Error loading conversations.</div>';
+            return;
+        }
+        const rooms = await res.json();
+        list.innerHTML = '';
+
+        if (!Array.isArray(rooms) || rooms.length === 0) {
+            list.innerHTML = '<div>No conversations found.</div>';
+            return;
+        }
+
+        let highlightId = roomIdToHighlight;
+        if (!highlightId) {
+            highlightId = localStorage.getItem('currentCustomerChatRoomId');
+        }
+
+        rooms.forEach(room => {
+            const provider = room.provider || {};
+            const displayName = provider.name || provider.email || "Provider";
+            const lastMsg = room.last_message || room.lastMessage || {};
+            const lastMsgContent = lastMsg.content || "";
+            const lastMsgTime = lastMsg.created_at || lastMsg.createdAt || room.last_message_at || room.lastMessageAt || "";
+
+            const item = document.createElement('div');
+            item.className = 'conversation-item' + ((room.id === highlightId) ? ' active' : '');
+            item.innerHTML = `
+                <div class="conversation-title">${escapeHtml(displayName)}</div>
+                <div class="conversation-snippet">${escapeHtml(lastMsgContent)}</div>
+                <div class="conversation-time">${formatDate(lastMsgTime)}</div>
+            `;
+            item.onclick = () => {
+                localStorage.setItem('currentCustomerChatRoomId', room.id);
+                document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                openCustomerConversation(room);
+            };
+            list.appendChild(item);
+
+            if (room.id === highlightId) {
+                setTimeout(() => openCustomerConversation(room), 0);
+            }
+        });
+    } catch (err) {
+        list.innerHTML = '<div>Error loading conversations.</div>';
+    }
+}
+
+async function openCustomerConversation(room) {
+    const token = getToken();
+    const currentUser = await getCurrentCustomerUser();
+
+    localStorage.setItem('currentCustomerChatRoomId', room.id);
+
+   
+    document.getElementById('customer-chat-header').style.display = '';
+    document.getElementById('customer-chat-input-container').style.display = '';
+
+    const provider = room.provider || {};
+    document.getElementById('customer-chat-user-name').innerText = provider.name || provider.email || 'Provider';
+    document.getElementById('customer-chat-user-status').innerText = 'Online';
+
+    const msgList = document.getElementById('customer-chat-messages');
+    msgList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading messages...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/chat/rooms/${room.id}/messages`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Failed to load messages');
+        const messages = await res.json();
+        msgList.innerHTML = '';
+
+        if (!messages.length) {
+            msgList.innerHTML = `
+                <div class="chat-welcome">
+                    <i class="fas fa-comments fa-3x"></i>
+                    <h3>No messages yet</h3>
+                    <p>Start the conversation!</p>
+                </div>`;
+            return;
+        }
+
+      
+       messages.forEach(msg => {
+    const isSent = msg.sender_id === currentUser.id;
+    const messageTimeRaw = msg.created_at || msg.createdAt || msg.time || "";
+    const messageTime = formatDate(messageTimeRaw);
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'message-container ' + (isSent ? 'sent' : 'received');
+
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.textContent = msg.content;
+
+    const time = document.createElement('span');
+    time.className = 'message-time';
+    time.textContent = messageTime;
+
+    messageContent.appendChild(bubble);
+    messageContent.appendChild(time);
+    messageContainer.appendChild(messageContent);
+
+    msgList.appendChild(messageContainer);
+});
+
+     
+        msgList.scrollTop = msgList.scrollHeight;
+
+
+        const chatForm = document.getElementById('customer-chat-form');
+        chatForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('customer-chat-message-input');
+            const content = input.value.trim();
+            if (!content) return;
+
+        
+            let receiver_id = room.provider_id;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/chat/rooms/${room.id}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sender_id: currentUser.id,
+                        receiver_id,
+                        content,
+                        booking_id: room.booking_id || null
+                    })
+                });
+
+                if (!res.ok) throw new Error('Failed to send message');
+                input.value = '';
+                await openCustomerConversation(room);
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message');
+            }
+        };
+    } catch (error) {
+        console.error('Error loading messages:', error);
+        msgList.innerHTML = '<div class="error">Failed to load messages. Please try again.</div>';
+    }
+}
 function setupSidebarTabs() {
     document.querySelectorAll('.sidebar-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -130,7 +315,7 @@ function setupSidebarTabs() {
             if (sectionId === 'dashboard-home') fetchAndDisplayProfile();
             if (sectionId === 'bookings') fetchAndDisplayBookings();
             if (sectionId === 'admin-messages-section') renderReceivedAdminMessages();
-            if (sectionId === 'provider-messages-section') renderReceivedProviderMessages();
+           if (sectionId === 'customer-chat-section') renderCustomerConversationList();
         });
     });
 }
@@ -156,7 +341,7 @@ async function fetchAndDisplayProfile() {
             showBlockedScreen();
             return;
         }
-        currentProfileId = (data.profile && (data.profile.ID || data.profile.id)) || data.id || data.ID;
+        currentProfileId = data.profile.ID;
         const phone = (data.profile && (data.profile.Phone || data.profile.phone)) || data.phone || '';
         const address = (data.profile && (data.profile.Address || data.profile.address)) || data.address || '';
 
@@ -422,7 +607,7 @@ async function renderReceivedProviderMessages() {
                 <div style="font-weight:bold; margin-bottom:0.25em;">${escapeHtml(msg.title || "Provider Message")}</div>
                 <div style="margin-bottom:0.5em; color:#334155;">${escapeHtml(msg.content || msg.Content)}</div>
                 ${bookingInfo}
-                <div style="font-size:0.9em;color:#888;">${msg.created_at ? new Date(msg.created_at).toLocaleString() : ''}</div>
+                <div style="font-size:0.9em;color:#888;">${messageTime}</div>
                 <hr>
             `;
             container.appendChild(msgDiv);
@@ -443,5 +628,5 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchAndDisplayProfile();
     fetchAndDisplayBookings();
     renderReceivedAdminMessages();
-    renderReceivedProviderMessages();
+    renderCustomerConversationList();
 });

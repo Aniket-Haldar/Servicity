@@ -55,7 +55,7 @@
         <button class="sidebar-btn active" data-section="dashboard-home"><i class="fa fa-home"></i> <span>Dashboard</span></button>
         <button class="sidebar-btn" data-section="bookings"><i class="fa fa-calendar-check"></i> <span>Bookings</span></button>
         <button class="sidebar-btn" data-section="admin-messages-section"><i class="fa fa-envelope"></i> <span>Admin Messages</span></button>
-        <button class="sidebar-btn" data-section="provider-messages-section"><i class="fa fa-envelope-open"></i> <span>Provider Messages</span></button>
+        <button class="sidebar-btn" data-section="customer-chat-section"><i class="fa fa-envelope-open"></i> <span>Chat</span></button>
     </aside>
     <section class="provider-dashboard-content">
         <div id="dashboard-home" class="dashboard-section active">
@@ -70,14 +70,63 @@
             <h2 class="section-title"><i class="fa fa-envelope"></i> Messages from Admin</h2>
             <div id="admin-messages-list" class="dashboard-list"></div>
         </div>
-        <div id="provider-messages-section" class="dashboard-section">
-            <h2 class="section-title"><i class="fa fa-envelope-open"></i> Messages from Providers</h2>
-            <div id="provider-messages-list" class="dashboard-list"></div>
+
+<div id="customer-chat-section" class="dashboard-section">
+    <h2 class="section-title"><i class="fa fa-comments"></i> Chat with Providers</h2>
+    <div class="chat-container">
+        <!-- Sidebar for conversations -->
+        <div class="chat-sidebar">
+            <div class="chat-search">
+                <input type="text" id="customer-chat-search-input" placeholder="Search conversations...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="conversation-list" id="customer-conversation-list">
+            </div>
         </div>
+        <div class="chat-main">
+            <div class="chat-header" id="customer-chat-header" style="display: none;">
+                <div class="chat-user-info">
+                    <div class="chat-user-avatar" id="customer-chat-header-avatar">PR</div>
+                    <div class="chat-user-details">
+                        <h4 id="customer-chat-user-name">Select a conversation</h4>
+                        <span id="customer-chat-user-status">Click on a provider to start chatting</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="btn-icon" id="customer-chat-info-btn" title="Conversation Info">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="customer-chat-messages">
+                <div class="chat-welcome">
+                    <i class="fas fa-comments fa-3x"></i>
+                    <h3>Welcome to Chat</h3>
+                    <p>Select a conversation from the sidebar to start messaging with your providers</p>
+                </div>
+            </div>
+            <div class="chat-input-container" id="customer-chat-input-container" style="display: none;">
+                <form id="customer-chat-form" class="chat-input-form">
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="customer-chat-message-input" placeholder="Type your message..." autocomplete="off">
+                        <button type="button" id="customer-emoji-btn" class="btn-icon" title="Add Emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button type="button" id="customer-attachment-btn" class="btn-icon" title="Attach File">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                    </div>
+                    <button type="submit" id="customer-send-btn" class="btn-send" title="Send Message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     </section>
 </main>
 
-<!-- Profile Edit Modal -->
 <div class="modal" id="edit-profile-modal" style="display:none;">
     <div class="modal-content">
         <span class="close-btn" id="close-edit-profile">&times;</span>
@@ -94,7 +143,6 @@
     </div>
 </div>
 
-<!-- Review Modal: always a direct child of body, overlays all content -->
 <div id="review-modal">
     <div class="modal-content">
         <button class="close-btn" id="close-review-modal" style="float:right;font-size:1.6em;background:none;border:none;cursor:pointer;">&times;</button>
@@ -129,7 +177,6 @@
     </div>
 </div>
 
-<!-- Booking Edit Modal -->
 <div class="modal" id="edit-booking-modal" style="display:none;">
     <div class="modal-content">
         <span class="close-btn" id="close-edit-booking">&times;</span>

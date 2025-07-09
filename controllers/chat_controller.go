@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -155,18 +154,15 @@ func (cc *ChatController) GetUserRooms(c *fiber.Ctx) error {
 	userIDStr := c.Query("user_id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		fmt.Println("Error parsing user_id:", err)
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid user_id"})
 	}
 	var rooms []models.ChatRoom
-	result := cc.DB.Where("customer_id = ? OR provider_id = ?", userID, userID).
+	cc.DB.Where("customer_id = ? OR provider_id = ?", userID, userID).
 		Preload("Customer").
 		Preload("Provider").
 		Order("last_message_at DESC").
 		Find(&rooms)
-	fmt.Println(result)
 	return c.JSON(rooms)
-
 }
 
 func (cc *ChatController) MarkAsRead(c *fiber.Ctx) error {

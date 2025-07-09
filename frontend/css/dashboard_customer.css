@@ -326,3 +326,21 @@
         padding: 16px 8px;
     }
 }
+#customer-chat-message-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 4px 8px;
+    font-size: 0.95em;
+    font-family: inherit;
+    resize: none;
+    max-height: 120px;
+    min-height: 20px;
+    line-height: 1.4;
+}
+
+#customer-chat-message-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+}
