@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicity | Complete Admin Profile</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/onboarding.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-header">
+            <img src="../images/logo.png" alt="Servicity" class="logo">
+            <h1>Complete Your Admin Profile</h1>
+            <p>Tell us more about yourself to request admin access.</p>
+        </div>
+
+        <form id="onboarding-admin-form">
+            <div class="form-section">
+                <h2>Basic Information</h2>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Admin Request Details</h2>
+                <div class="form-group">
+                    <label for="admin-message">Why do you want to become an admin?</label>
+                    <textarea id="admin-message" name="admin-message" rows="3" required placeholder="Describe your motivation or experience..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Submit Admin Request</button>
+            </div>
+        </form>
+        <div id="admin-request-status" style="display:none; margin-top:20px;"></div>
+    </div>
+
+    <script src="../js/onboarding_admin.js"></script>
+</body>
+</html> 

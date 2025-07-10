@@ -13,21 +13,24 @@ import (
 	"gorm.io/gorm"
 )
 
-// Redirect to Google OAuth login
 func GoogleLogin(c *fiber.Ctx) error {
-	url := config.GoogleOAuthConfig.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+	next := c.Query("next", "")
+
+	url := config.GoogleOAuthConfig.AuthCodeURL(next, oauth2.AccessTypeOffline)
 	return c.Redirect(url)
 }
 
-// Handle Google OAuth callback
 func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	code := c.Query("code")
+	state := c.Query("state", "")
+
 	if code == "" {
 		return c.Status(fiber.StatusBadRequest).SendString("Code not found in query params")
 	}
 
 	token, err := config.GoogleOAuthConfig.Exchange(context.Background(), code)
 	if err != nil {
+
 		return c.Status(fiber.StatusInternalServerError).SendString("Token exchange failed: " + err.Error())
 	}
 
@@ -57,10 +60,9 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	result := db.Preload("CustomerProfile").Preload("ProviderProfile").First(&user, "email = ?", email)
 
 	if result.Error != nil {
-
 		user = models.User{
 			Email: email,
-			Role:  "customer", // default role
+			Role:  "",
 		}
 		if err := db.Create(&user).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to create user: " + err.Error())
@@ -72,7 +74,6 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate JWT: " + err.Error())
 	}
 
-	//cookie proceess
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    jwtToken,
@@ -83,13 +84,22 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		MaxAge:   86400,
 	})
 
-	// Onboarding check
-	if user.Name == "" || user.Role == "" ||
-		(user.Role == "customer" && user.CustomerProfile.Phone == "") ||
-		(user.Role == "provider" && user.ProviderProfile.Pincode == "") {
-		return c.Redirect("http://localhost:5500/frontend/html/onboarding.html")
+	needsOnboarding := user.Role == "" ||
+		(user.Role == "customer" && (user.Name == "" || user.CustomerProfile.Phone == "")) ||
+		(user.Role == "provider" && (user.Name == "" || user.ProviderProfile.Pincode == ""))
+
+	if needsOnboarding {
+
+		redirectPath := "/frontend/html/onboarding.html"
+		if state != "" {
+
+			if state[0] != '/' {
+				state = "/" + state
+			}
+			redirectPath = state
+		}
+		return c.Redirect("http://localhost:5500" + redirectPath)
 	}
 
-	// Redirect to landing page
 	return c.Redirect("http://localhost:5500/frontend/html/index.html")
 }

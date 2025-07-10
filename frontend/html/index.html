@@ -20,29 +20,23 @@
             <a href="services.html" class="nav-link">Services</a>
             <a href="#" class="nav-link">About</a>
             <a href="https://github.com/Aniket-Haldar" class="nav-link">Contact</a>
-            <a href="#" id="dashboard-link" class="nav-link">Dashboard</a>
+            <a href="#" id="dashboard-link" class="nav-link" style="display:none;">Dashboard</a>
+           <button id="google-login" class="nav-btn btn btn-primary">Login / Register</button>
+<button id="register-provider-btn" class="nav-btn btn btn-outline">Register as Provider</button>
+<button id="register-admin-btn" class="nav-btn btn btn-outline">Register as Admin</button>
 
-            <div class="profile-dropdown">
-                <a href="#" id="profile-icon">
-                    <img src="../images/profile.svg" alt="Profile" class="profile-icon">
-                    <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
-                </a>
-
-                <div id="auth-dropdown" class="dropdown-menu">
-                  
-                    <button id="google-login" class="oauth-btn">
-                        <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
-                        <span>Continue with Google</span>
-                    </button>
-
-                  
-                    <div id="user-info" style="display: none;">
-                        <div class="user-email"></div>
-                        <button id="logout-btn" class="logout-btn">Log Out</button>
-                    </div>
-                </div>
-            </div>
+<div class="profile-dropdown" style="display: none;">
+    <a href="#" id="profile-icon">
+        <img src="../images/profile.svg" alt="Profile" class="profile-icon">
+        <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
+    </a>
+    <div id="auth-dropdown" class="dropdown-menu">
+        <div id="user-info">
+            <div class="user-email"></div>
+            <button id="logout-btn" class="logout-btn">Log Out</button>
         </div>
+    </div>
+</div>
 
         <button class="hamburger">
             <i class="fas fa-bars"></i>
@@ -50,15 +44,6 @@
     </div>
 </nav>
 
-    <div class="profile-container">
-  <img src="/images/profile.svg" id="profile-icon" alt="Profile" class="profile-icon">
-  <div id="auth-dropdown" class="dropdown-menu">
-    <button id="google-login" class="oauth-btn">
-      <img src="/images/google-icon.svg" alt="Google">
-      <span>Continue with Google</span>
-    </button>
-  </div>
-</div>
  
     <section class="hero">
         <div class="container">

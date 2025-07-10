@@ -272,7 +272,7 @@ async function checkAuthStatus() {
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('google-login').style.display = 'none';
             document.querySelector('.user-name').textContent = data.name;
-
+            document.getElementById('dashboard-link').style.display = '';
 
             if (data.role && data.role.toLowerCase() === 'admin') {
                 isAdmin = true;
@@ -291,39 +291,111 @@ async function checkAuthStatus() {
         return false;
     }
 }
+function showAuthButtons() {
+    document.getElementById('google-login')?.style.setProperty('display', '');
+    document.getElementById('register-provider-btn')?.style.setProperty('display', '');
+    document.getElementById('register-admin-btn')?.style.setProperty('display', '');
+    document.querySelector('.profile-dropdown')?.style.setProperty('display', 'none');
+}
 
-
+function showProfileDropdown(profile) {
+    document.getElementById('google-login')?.style.setProperty('display', 'none');
+    document.getElementById('register-provider-btn')?.style.setProperty('display', 'none');
+    document.getElementById('register-admin-btn')?.style.setProperty('display', 'none');
+    document.querySelector('.profile-dropdown')?.style.setProperty('display', '');
+    if (profile) {
+        document.querySelector('.user-name').textContent = profile.name || '';
+        document.querySelector('.user-email').textContent = profile.email || '';
+    }
+}
+async function getUserProfile() {
+    const token = localStorage.getItem('token') || getCookie('token');
+    if (!token) return null;
+    try {
+        const response = await fetch(`${API_BASE_URL}/profile/details`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (err) {
+        return null;
+    }
+}
+async function updateAuthUI() {
+    const profile = await getUserProfile();
+    if (profile && profile.name) {
+        showProfileDropdown(profile);
+    } else {
+        showAuthButtons();
+    }
+}
 document.addEventListener('DOMContentLoaded', async () => {
-
     fetchAndDisplayServices();
-
-
+    await updateAuthUI();
     await checkAuthStatus();
 
-
+    // Profile dropdown toggle
     document.getElementById('profile-icon')?.addEventListener('click', function(e) {
         e.preventDefault();
         document.getElementById('auth-dropdown')?.classList.toggle('show');
     });
 
-
+    // Close profile dropdown when clicking outside
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.profile-dropdown')) {
             document.getElementById('auth-dropdown')?.classList.remove('show');
         }
     });
 
-
-    document.getElementById('google-login')?.addEventListener('click', function(e) {
+    // Login/Register button logic
+    document.getElementById('google-login')?.addEventListener('click', async function(e) {
         e.preventDefault();
-        window.location.href = `${API_BASE_URL}/auth/google/login`;
+        const token = localStorage.getItem('token') || getCookie('token');
+        if (!token) {
+            // Not logged in, go to Google login
+            window.location.href = `${API_BASE_URL}/auth/google/login`;
+            return;
+        }
+        const profile = await getUserProfile();
+        if (!profile || !profile.role) {
+            // No role, go to onboarding
+            window.location.href = 'onboarding.html';
+            return;
+        }
+        // Already has a role, route to dashboard
+        if (profile.role === 'Provider' && profile.profile?.status === 'Approved') {
+            window.location.href = 'dashboard_provider.html';
+        } else if (profile.role === 'Admin') {
+            window.location.href = 'dashboard_admin.html';
+        } else if (profile.role === 'Customer') {
+            window.location.href = 'dashboard_customer.html';
+        } else if (profile.role === 'Provider' && profile.status !== 'Approved') {
+            window.location.href = 'application_status.html';
+        }
     });
 
- 
+    // Register as Provider button logic
+    document.getElementById('register-provider-btn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Always start Google OAuth, even if already logged in
+        // Use 'next' param so backend/callback can redirect post-login
+        window.location.href = `${API_BASE_URL}/auth/google/login?next=/frontend/html/onboarding_provider.html`;
+    });
+
+    // Register as Admin button logic
+    document.getElementById('register-admin-btn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Always start Google OAuth, even if already logged in
+        // Use 'next' param so backend/callback can redirect post-login
+        window.location.href = `${API_BASE_URL}/auth/google/login?next=/frontend/html/onboarding_admin.html`;
+    });
+
+    // Logout
     document.getElementById('logout-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('token');
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.getElementById('dashboard-link').style.display = 'none';
         window.location.reload();
     });
 });
