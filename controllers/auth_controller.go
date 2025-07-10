@@ -60,7 +60,9 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	result := db.Preload("CustomerProfile").Preload("ProviderProfile").First(&user, "email = ?", email)
 
 	if result.Error != nil {
+		name, _ := userInfo["name"].(string) // Try to get name from Google profile
 		user = models.User{
+			Name:  name,
 			Email: email,
 			Role:  "",
 		}

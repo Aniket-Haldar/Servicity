@@ -22,21 +22,21 @@
             <a href="#" class="nav-link">Contact</a>
             <span class="nav-link" style="color:var(--primary);font-weight:600;">Admin</span>
             <div class="profile-dropdown">
-                    <a href="#" id="profile-icon">
-                        <img src="../images/profile.svg" alt="Profile" class="profile-icon">
-                        <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
-                    </a>
-                    <div id="auth-dropdown" class="dropdown-menu">
-                        <button id="google-login" class="oauth-btn">
-                            <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
-                            <span>Continue with Google</span>
-                        </button>
-                        <div id="user-info" style="display: none;">
-                            <div class="user-email"></div>
-                            <button id="logout-btn" class="logout-btn">Log Out</button>
-                        </div>
+                <a href="#" id="profile-icon">
+                    <img src="../images/profile.svg" alt="Profile" class="profile-icon">
+                    <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
+                </a>
+                <div id="auth-dropdown" class="dropdown-menu">
+                    <button id="google-login" class="oauth-btn">
+                        <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
+                        <span>Continue with Google</span>
+                    </button>
+                    <div id="user-info" style="display: none;">
+                        <div class="user-email"></div>
+                        <button id="logout-btn" class="logout-btn">Log Out</button>
                     </div>
                 </div>
+            </div>
         </div>
         <button class="hamburger">
             <i class="fas fa-bars"></i>
@@ -50,6 +50,8 @@
         <button class="sidebar-btn" data-section="provider-requests">🔔 Provider Requests</button>
         <button class="sidebar-btn" data-section="categories">🗂️ Categories</button>
         <button class="sidebar-btn" data-section="messages">✉️ Messages</button>
+        <!-- Only shown for super admin, revealed by JS -->
+        <button class="sidebar-btn" id="admin-requests-btn" data-section="admin-requests" style="display:none;">🛡️ Admin Requests</button>
     </aside>
     <section class="admin-dashboard-content">
         <div id="section-analytics" class="dashboard-section active">
@@ -73,8 +75,6 @@
             </div>
             <div id="users-list"></div>
         </div>
-        
-        <!-- NEW: Provider Requests Section -->
         <div id="section-provider-requests" class="dashboard-section">
             <h2 class="section-title">Provider Requests</h2>
             <div class="request-filters">
@@ -85,7 +85,6 @@
             </div>
             <div id="provider-requests-list"></div>
         </div>
-        
         <div id="section-categories" class="dashboard-section">
             <h2 class="section-title">Service Categories</h2>
             <form id="add-category-form">
@@ -94,27 +93,30 @@
             </form>
             <ul id="categories-list"></ul>
         </div>
-       <div id="section-messages" class="dashboard-section">
-    <h2 class="section-title">Send Message</h2>
-    <form id="message-form">
-        <label>
-            To:
-            <select id="message-target">
-                <option value="All">All Users</option>
-                <option value="Provider">Providers</option>
-                <option value="Customer">Customers</option>
-            </select>
-        </label>
-        <textarea id="message-content" placeholder="Enter message..." required></textarea>
-        <button class="btn btn-primary" type="submit">Send</button>
-    </form>
-    <div id="message-status"></div>
-
-    <div style="margin-top:2em;">
-        <h3>Sent Messages</h3>
-        <div id="sent-messages" style="max-height:300px;overflow:auto;"></div>
-    </div>
-</div>
+        <div id="section-messages" class="dashboard-section">
+            <h2 class="section-title">Send Message</h2>
+            <form id="message-form">
+                <label>
+                    To:
+                    <select id="message-target">
+                        <option value="All">All Users</option>
+                        <option value="Provider">Providers</option>
+                        <option value="Customer">Customers</option>
+                    </select>
+                </label>
+                <textarea id="message-content" placeholder="Enter message..." required></textarea>
+                <button class="btn btn-primary" type="submit">Send</button>
+            </form>
+            <div id="message-status"></div>
+            <div style="margin-top:2em;">
+                <h3>Sent Messages</h3>
+                <div id="sent-messages" style="max-height:300px;overflow:auto;"></div>
+            </div>
+        </div>
+        <div id="section-admin-requests" class="dashboard-section">
+            <h2 class="section-title">Admin Requests</h2>
+            <div id="admin-requests-list"></div>
+        </div>
     </section>
 </main>
 

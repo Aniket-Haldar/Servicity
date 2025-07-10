@@ -1,7 +1,5 @@
 const API_BASE = "http://localhost:3000/admin";
 const API_BASE_URL = "http://localhost:3000";
-
-
 let currentProviderRequestId = null;
 
 function getCookie(name) {
@@ -131,13 +129,23 @@ function showAuthError(msg) {
     `;
 }
 
+async function showAdminRequestsTabIfSuperAdmin() {
+    const token = getCookie('token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/profile/details`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.email === "aniket.haldar05@gmail.com") {
+            document.getElementById('admin-requests-btn').style.display = "";
+        }
+    } catch (e) {}
+}
 
 function renderProviderRequests(status) {
     const list = document.getElementById('provider-requests-list');
     list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading provider requests...</div>';
-    
     const url = `${API_BASE}/provider-requests${status ? `?status=${status}` : ''}`;
-    
     fetch(url, { headers: getAuthHeader() })
         .then(res => res.json())
         .then(requests => {
@@ -146,73 +154,45 @@ function renderProviderRequests(status) {
                 list.innerHTML = '<div class="empty-message">No provider requests found.</div>';
                 return;
             }
-            
-            requests.forEach(request => {
-                const requestDiv = document.createElement('div');
-                requestDiv.className = 'provider-request-item';
-                requestDiv.innerHTML = `
+            requests.forEach(req => {
+                const reqDiv = document.createElement('div');
+                reqDiv.className = 'provider-request-item';
+                reqDiv.innerHTML = `
                     <div class="request-header">
                         <div class="provider-info">
-                            <h4>${request.user_name || 'N/A'}</h4>
-                            <p>${request.user_email || 'N/A'}</p>
+                            <h4>${req.user_name} (${req.user_email})</h4>
+                        
                         </div>
-                        <span class="status-badge ${request.status.toLowerCase()}">${request.status}</span>
+                        <span class="status-badge ${req.status.toLowerCase()}">${req.status}</span>
                     </div>
                     <div class="request-details">
                         <div class="detail-item">
-                            <strong>Profession</strong>
-                            <span>${request.profession || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Location</strong>
-                            <span>${request.pincode || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Pricing</strong>
-                            <span>${request.pricing ? `₹${request.pricing}` : 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Available Timings</strong>
-                            <span>${request.available_timings || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Applied Date</strong>
-                            <span>${new Date(request.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Account Status</strong>
-                            <span>${request.user_blocked ? 'Blocked' : 'Active'}</span>
+                            <strong>Requested On</strong>
+                            <span>${new Date(req.created_at).toLocaleDateString()}</span>
                         </div>
                     </div>
-                    ${request.status === 'Pending' ? `
-                        <div class="request-actions">
-                            <button class="btn-approve" onclick="openProviderModal(${request.id}, 'Approved')">
-                                ✓ Approve
-                            </button>
-                            <button class="btn-reject" onclick="openProviderModal(${request.id}, 'Rejected')">
-                                ✗ Reject
-                            </button>
-                        </div>
-                    ` : ''}
+                    ${
+                        req.status === "Pending"
+                        ? `<div class="request-actions">
+                            <button class="btn-approve" onclick="approveAdminRequest(${req.ID})">✓ Approve</button>
+                            <button class="btn-reject" onclick="rejectAdminRequest(${req.ID})">✗ Reject</button>
+                        </div>`
+                        : ""
+                    }
                 `;
-                list.appendChild(requestDiv);
+                list.appendChild(reqDiv);
             });
         })
         .catch(() => {
             list.innerHTML = '<div class="error-message">Failed to load provider requests.</div>';
         });
 }
-
 function openProviderModal(providerId, suggestedStatus) {
     currentProviderRequestId = providerId;
     const modal = document.getElementById('provider-request-modal');
     const form = document.getElementById('provider-status-form');
-    
-
     form.reset();
     document.getElementById('reason-group').style.display = 'none';
-    
-
     if (suggestedStatus) {
         const radio = document.querySelector(`input[name="status"][value="${suggestedStatus}"]`);
         if (radio) {
@@ -222,7 +202,6 @@ function openProviderModal(providerId, suggestedStatus) {
             }
         }
     }
-    
     modal.style.display = 'flex';
 }
 
@@ -233,15 +212,12 @@ function closeProviderModal() {
 
 function updateProviderStatus() {
     if (!currentProviderRequestId) return;
-    
     const status = document.querySelector('input[name="status"]:checked').value;
     const reason = document.getElementById('rejection-reason').value.trim();
-    
     const data = { status };
     if (status === 'Rejected' && reason) {
         data.reason = reason;
     }
-    
     fetch(`${API_BASE}/provider-requests/${currentProviderRequestId}/status`, {
         method: 'PUT',
         headers: {
@@ -254,11 +230,8 @@ function updateProviderStatus() {
     .then(response => {
         if (response.status === 'success') {
             closeProviderModal();
-    
             const activeTab = document.querySelector('#section-provider-requests .tab-btn.active');
             renderProviderRequests(activeTab.getAttribute('data-status'));
-            
-           
             const messageDiv = document.createElement('div');
             messageDiv.className = 'success-message';
             messageDiv.textContent = response.message;
@@ -316,7 +289,6 @@ function renderAnalytics() {
         });
 }
 
-
 async function renderUsers(type) {
     try {
         const [usersRes, providersRes] = await Promise.all([
@@ -325,31 +297,23 @@ async function renderUsers(type) {
                 fetch(`${API_BASE}/provider-requests?status=Approved`, { headers: getAuthHeader() }) : 
                 Promise.resolve({ json: () => [] })
         ]);
-        
         const users = await usersRes.json();
         const approvedProviders = await providersRes.json();
-        
         const list = document.getElementById('users-list');
         list.innerHTML = '';
-        
         if (!Array.isArray(users)) {
             list.innerHTML = '<div class="error-message">Failed to load users. Please log in again.</div>';
             return;
         }
-        
         let filteredUsers = users;
-        
-
         if (type === 'Provider' && Array.isArray(approvedProviders)) {
             const approvedUserIds = approvedProviders.map(p => p.user_id);
             filteredUsers = users.filter(user => approvedUserIds.includes(user.ID));
         }
-        
         if (filteredUsers.length === 0) {
             list.innerHTML = `<div class="empty-message">No ${type === 'Provider' ? 'approved providers' : 'customers'} found.</div>`;
             return;
         }
-        
         filteredUsers.forEach(user => {
             const row = document.createElement('div');
             row.className = 'user-row';
@@ -367,12 +331,10 @@ async function renderUsers(type) {
             `;
             list.appendChild(row);
         });
-        
     } catch (error) {
         document.getElementById('users-list').innerHTML = '<div class="error-message">Failed to load users. Please log in again.</div>';
     }
 }
-
 
 function renderCategories() {
     fetch(`${API_BASE}/categories`, { headers: getAuthHeader() })
@@ -398,7 +360,6 @@ function renderCategories() {
             document.getElementById('categories-list').innerHTML = '<li>Failed to load categories.</li>';
         });
 }
-
 
 function renderSentMessages() {
     const sentMessagesDiv = document.getElementById('sent-messages');
@@ -435,10 +396,67 @@ function renderSentMessages() {
 }
 
 
+function renderAdminRequests() {
+    const list = document.getElementById('admin-requests-list');
+    list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading admin requests...</div>';
+    fetch(`${API_BASE}/requests`, { headers: getAuthHeader() })
+        .then(res => res.json())
+        .then(requests => {
+            list.innerHTML = '';
+            if (!Array.isArray(requests) || requests.length === 0) {
+                list.innerHTML = '<div class="empty-message">No pending admin requests.</div>';
+                return;
+            }
+            requests.forEach(req => {
+                console.log(req);
+                const reqDiv = document.createElement('div');
+                reqDiv.className = 'provider-request-item';
+                reqDiv.innerHTML = `
+                    <div class="request-header">
+                        <div class="provider-info">
+                            <h4>Name: ${req.user_name}</h4>
+                            <p>Email:${req.user_email}</p>
+                            <p>Message: ${req.message}</p>
+                        </div>
+                        <span class="status-badge ${req.status.toLowerCase()}">${req.status}</span>
+                    </div>
+                    <div class="request-details">
+                        <div class="detail-item">
+                            <strong>Requested On</strong>
+                            <span>${new Date(req.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn-approve" onclick="approveAdminRequest(${req.ID})">✓ Approve</button>
+                        <button class="btn-reject" onclick="rejectAdminRequest(${req.ID})">✗ Reject</button>
+                    </div>
+                `;
+                list.appendChild(reqDiv);
+            });
+        })
+        .catch(() => {
+            list.innerHTML = '<div class="error-message">Failed to load admin requests.</div>';
+        });
+}
+
+window.approveAdminRequest = function(id) {
+    fetch(`${API_BASE}/requests/${id}/approve`, {
+        method: "POST",
+        headers: getAuthHeader()
+    }).then(() => renderAdminRequests());
+};
+
+window.rejectAdminRequest = function(id) {
+    fetch(`${API_BASE}/requests/${id}/reject`, {
+        method: "POST",
+        headers: getAuthHeader()
+    }).then(() => renderAdminRequests());
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) return;
-
+    showAdminRequestsTabIfSuperAdmin();
 
     document.querySelectorAll('.sidebar-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -447,17 +465,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const section = this.getAttribute('data-section');
             document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById('section-' + section).classList.add('active');
-            
-      
             if (section === 'provider-requests') {
                 renderProviderRequests('');
+            }
+            if (section === 'admin-requests') {
+                renderAdminRequests();
             }
         });
     });
 
- 
     renderAnalytics();
-
 
     const userTabs = document.querySelectorAll('#section-users .tab-btn');
     userTabs.forEach(tab => {
@@ -478,12 +495,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-
     document.getElementById('provider-status-form').addEventListener('submit', function(e) {
         e.preventDefault();
         updateProviderStatus();
     });
-
 
     document.querySelectorAll('input[name="status"]').forEach(radio => {
         radio.addEventListener('change', function() {
@@ -491,7 +506,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             reasonGroup.style.display = this.value === 'Rejected' ? 'block' : 'none';
         });
     });
-
 
     renderCategories();
     document.getElementById('add-category-form').addEventListener('submit', function(e) {
@@ -513,7 +527,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
- 
     document.getElementById('categories-list').addEventListener('click', function(e) {
         if (e.target.tagName === "BUTTON") {
             const cat = e.target.dataset.category;
@@ -523,7 +536,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).then(() => renderCategories());
         }
     });
-
 
     document.getElementById('users-list').addEventListener('click', function(e) {
         if (e.target.tagName === "BUTTON") {
@@ -540,7 +552,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).then(() => renderUsers(type));
         }
     });
-
 
     document.getElementById('message-form').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -566,7 +577,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     showAuthUI();
     setupDropdownLogic();
 
-
     window.addEventListener('click', function(e) {
         const modal = document.getElementById('provider-request-modal');
         if (e.target === modal) {
@@ -574,7 +584,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
-
 
 window.openProviderModal = openProviderModal;
 window.closeProviderModal = closeProviderModal;

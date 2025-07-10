@@ -42,9 +42,9 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	admin.Get("/provider-requests", middleware.RequireAuth, controllers.AdminListProviderRequests(db))
 	admin.Put("/provider-requests/:id/status", middleware.RequireAuth, controllers.AdminUpdateProviderStatus(db))
 	admin.Post("/request", middleware.RequireAuth, controllers.AdminRequestHandler(db))
-	admin.Get("/requests", controllers.AdminListAdminRequests(db))
-	admin.Post("/requests/:id/approve", controllers.AdminApproveAdminRequest(db))
-	admin.Post("/requests/:id/reject", controllers.AdminRejectAdminRequest(db))
+	admin.Get("/requests", middleware.RequireAuth, controllers.AdminListAdminRequests(db))
+	admin.Post("/requests/:id/approve", middleware.RequireAuth, controllers.AdminApproveAdminRequest(db))
+	admin.Post("/requests/:id/reject", middleware.RequireAuth, controllers.AdminRejectAdminRequest(db))
 	admin.Get("/my-admin-request", middleware.RequireAuth, controllers.GetMyAdminRequestStatus(db))
 
 	service := app.Group("/services")

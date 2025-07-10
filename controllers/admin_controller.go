@@ -316,7 +316,6 @@ func AdminRequestHandler(db *gorm.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 		}
 
-		// Prevent duplicate pending requests
 		var existing models.AdminRequest
 		db.Where("user_id = ? AND status = ?", userID, "Pending").First(&existing)
 		if existing.ID != 0 {
@@ -336,7 +335,6 @@ func AdminRequestHandler(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// 2. Superadmin views all pending requests
 func AdminListAdminRequests(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		requesterID, ok := c.Locals("userID").(uint)
@@ -351,20 +349,33 @@ func AdminListAdminRequests(db *gorm.DB) fiber.Handler {
 		if err := db.First(&requester, requesterID).Error; err != nil {
 			return c.Status(401).JSON(fiber.Map{"error": "User not found"})
 		}
-		// Only superadmin by email
 		if requester.Email != "aniket.haldar05@gmail.com" {
 			return c.Status(403).JSON(fiber.Map{"error": "Forbidden"})
 		}
 
-		var requests []models.AdminRequest
-		if err := db.Where("status = ?", "Pending").Find(&requests).Error; err != nil {
+		type AdminRequestWithUser struct {
+			ID        uint      `json:"ID"`
+			UserID    uint      `json:"user_id"`
+			Message   string    `json:"message"`
+			Status    string    `json:"status"`
+			CreatedAt time.Time `json:"created_at"`
+			UserName  string    `json:"user_name"`
+			UserEmail string    `json:"user_email"`
+		}
+
+		var requests []AdminRequestWithUser
+		err := db.Table("admin_requests").
+			Select("admin_requests.id, admin_requests.user_id, admin_requests.message, admin_requests.status, admin_requests.created_at, users.name as user_name, users.email as user_email").
+			Joins("JOIN users ON admin_requests.user_id = users.id").
+			Where("admin_requests.status = ?", "Pending").
+			Find(&requests).Error
+
+		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch requests"})
 		}
 		return c.JSON(requests)
 	}
 }
-
-// 3. Superadmin approves a request
 func AdminApproveAdminRequest(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		requesterID, ok := c.Locals("userID").(uint)
@@ -395,7 +406,6 @@ func AdminApproveAdminRequest(db *gorm.DB) fiber.Handler {
 			return c.Status(400).JSON(fiber.Map{"error": "Request already handled"})
 		}
 
-		// Make user admin
 		var user models.User
 		if err := db.First(&user, adminReq.UserID).Error; err != nil {
 			return c.Status(404).JSON(fiber.Map{"error": "User not found"})
@@ -409,7 +419,6 @@ func AdminApproveAdminRequest(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// 4. Superadmin rejects a request
 func AdminRejectAdminRequest(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		requesterID, ok := c.Locals("userID").(uint)
@@ -456,7 +465,6 @@ func GetMyAdminRequestStatus(db *gorm.DB) fiber.Handler {
 			}
 		}
 
-		// Is user already admin?
 		var user models.User
 		if err := db.First(&user, userID).Error; err != nil {
 			return c.Status(401).JSON(fiber.Map{"status": "unknown"})
@@ -465,7 +473,6 @@ func GetMyAdminRequestStatus(db *gorm.DB) fiber.Handler {
 			return c.JSON(fiber.Map{"status": "Approved"})
 		}
 
-		// Is there an admin request?
 		var req models.AdminRequest
 		if err := db.Where("user_id = ?", userID).Order("created_at desc").First(&req).Error; err != nil {
 			return c.JSON(fiber.Map{"status": "not_requested"})

@@ -1,10 +1,8 @@
-
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
-
 
 const API_BASE_URL = 'http://localhost:3000';
 let isAdmin = false; 
@@ -13,11 +11,9 @@ const servicesContainer = document.getElementById('services-container');
 const searchInput = document.getElementById('service-search');
 const searchBtn = document.getElementById('search-btn');
 
-
 document.querySelector('.hamburger')?.addEventListener('click', function() {
     document.querySelector('.nav-links')?.classList.toggle('active');
 });
-
 
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
@@ -30,12 +26,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 top: targetElement.offsetTop - 70,
                 behavior: 'smooth'
             });
-     
             document.querySelector('.nav-links')?.classList.remove('active');
         }
     });
 });
-
 
 window.addEventListener('scroll', function() {
     const navbar = document.querySelector('.navbar');
@@ -46,17 +40,14 @@ window.addEventListener('scroll', function() {
     }
 });
 
-
 async function fetchAndDisplayServices(searchQuery = '') {
     try {
-      
         servicesContainer.innerHTML = `
             <div class="loading-spinner">
                 <div class="spinner"></div>
                 <p>Loading services...</p>
             </div>
         `;
-
 
         const url = `${API_BASE_URL}/services${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`;
         const response = await fetch(url);
@@ -67,7 +58,6 @@ async function fetchAndDisplayServices(searchQuery = '') {
 
         let services = await response.json();
 
-     
         services = services.map(service => ({
             id: service.id || service.ID,
             name: service.name || service.Name,
@@ -77,7 +67,6 @@ async function fetchAndDisplayServices(searchQuery = '') {
             provider_id: service.provider_id || service.ProviderID
         }));
 
-  
         servicesContainer.innerHTML = '';
 
         if (!services || services.length === 0) {
@@ -89,7 +78,6 @@ async function fetchAndDisplayServices(searchQuery = '') {
             return;
         }
 
-     
         renderServices(services);
 
     } catch (error) {
@@ -121,13 +109,10 @@ function renderServices(services) {
         servicesContainer.appendChild(serviceCard);
     });
 
-    
     setupServiceInteractions();
 }
 
-
 function setupServiceInteractions() {
-
     document.querySelectorAll('.book-btn').forEach(button => {
         button.addEventListener('click', function() {
             const serviceId = this.getAttribute('data-service-id');
@@ -146,7 +131,6 @@ function setupServiceInteractions() {
         });
     }
 }
-
 
 async function bookService(serviceId) {
     const token = getCookie('token');
@@ -172,8 +156,6 @@ async function bookService(serviceId) {
             const errorText = await response.text();
             throw new Error(`Booking failed: ${errorText}`);
         }
-        //http://localhost:5500/frontend/html/booking.html?serviceId=134
-        const data = await response.json();
         window.location.href = `/frontend/html/booking.html?serviceId=${serviceId}`;
 
     } catch (error) {
@@ -219,7 +201,6 @@ searchInput?.addEventListener('keypress', (e) => {
     }
 });
 
-
 document.getElementById('dashboard-link')?.addEventListener('click', async function(e) {
     e.preventDefault();
     const token = getCookie('token');
@@ -228,23 +209,29 @@ document.getElementById('dashboard-link')?.addEventListener('click', async funct
         return;
     }
     try {
-        const response = await fetch('http://localhost:3000/profile/details', {
+        const response = await fetch(`${API_BASE_URL}profile/details`, {
             headers: { 'Authorization': `bearer ${token}` }
         });
         if (!response.ok) throw new Error('Failed to fetch user profile');
         const data = await response.json();
         console.log(data);
-        if (data.role === 'Provider' && data.profile.status=='Approved') {
+
+       
+        if (!data.role || data.role.trim() === "") {
+            window.location.href = 'application_status_admin.html';
+            return;
+        }
+
+        if (data.role === 'Provider' && data.profile.status == 'Approved') {
             window.location.href = 'dashboard_provider.html';
-        } else if (data.role==='Admin') {
+        } else if (data.role === 'Admin') {
             window.location.href = 'dashboard_admin.html';
-        } else if (data.role==='Customer') {
+        } else if (data.role === 'Customer') {
             window.location.href = 'dashboard_customer.html';
-        } else if (data.role === 'Provider' && data.status!='Approved'){
-            window.location.href='application_status.html';
-        }  else
-        {
-            window.location.href=`${API_BASE_URL}/auth/google/login`
+        } else if (data.role === 'Provider' && data.status != 'Approved') {
+            window.location.href = 'application_status.html';
+        } else {
+            window.location.href = `${API_BASE_URL}/auth/google/login`;
         }
     } catch (err) {
         alert('Error determining dashboard: ' + err.message);
@@ -268,7 +255,6 @@ async function checkAuthStatus() {
         const data = await response.json();
 
         if (data.name) {
-
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('google-login').style.display = 'none';
             document.querySelector('.user-name').textContent = data.name;
@@ -280,9 +266,6 @@ async function checkAuthStatus() {
             if (data.role && data.role.toLowerCase() === 'provider') {
                 isAdmin = true; 
             }
-            if (!data.role) {
-                window.location.href = '/onboarding';
-            }
             return true;
         }
         return false;
@@ -291,6 +274,7 @@ async function checkAuthStatus() {
         return false;
     }
 }
+
 function showAuthButtons() {
     document.getElementById('google-login')?.style.setProperty('display', '');
     document.getElementById('register-provider-btn')?.style.setProperty('display', '');
@@ -329,40 +313,37 @@ async function updateAuthUI() {
         showAuthButtons();
     }
 }
+
 document.addEventListener('DOMContentLoaded', async () => {
     fetchAndDisplayServices();
     await updateAuthUI();
     await checkAuthStatus();
 
-    // Profile dropdown toggle
+   
     document.getElementById('profile-icon')?.addEventListener('click', function(e) {
         e.preventDefault();
         document.getElementById('auth-dropdown')?.classList.toggle('show');
     });
 
-    // Close profile dropdown when clicking outside
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.profile-dropdown')) {
             document.getElementById('auth-dropdown')?.classList.remove('show');
         }
     });
 
-    // Login/Register button logic
+ 
     document.getElementById('google-login')?.addEventListener('click', async function(e) {
         e.preventDefault();
         const token = localStorage.getItem('token') || getCookie('token');
         if (!token) {
-            // Not logged in, go to Google login
             window.location.href = `${API_BASE_URL}/auth/google/login`;
             return;
         }
         const profile = await getUserProfile();
         if (!profile || !profile.role) {
-            // No role, go to onboarding
             window.location.href = 'onboarding.html';
             return;
         }
-        // Already has a role, route to dashboard
         if (profile.role === 'Provider' && profile.profile?.status === 'Approved') {
             window.location.href = 'dashboard_provider.html';
         } else if (profile.role === 'Admin') {
@@ -374,23 +355,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Register as Provider button logic
+
     document.getElementById('register-provider-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
-        // Always start Google OAuth, even if already logged in
-        // Use 'next' param so backend/callback can redirect post-login
         window.location.href = `${API_BASE_URL}/auth/google/login?next=/frontend/html/onboarding_provider.html`;
     });
 
-    // Register as Admin button logic
+
     document.getElementById('register-admin-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
-        // Always start Google OAuth, even if already logged in
-        // Use 'next' param so backend/callback can redirect post-login
         window.location.href = `${API_BASE_URL}/auth/google/login?next=/frontend/html/onboarding_admin.html`;
     });
 
-    // Logout
     document.getElementById('logout-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('token');
