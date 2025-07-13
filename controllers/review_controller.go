@@ -23,6 +23,13 @@ func CreateReview(db *gorm.DB) fiber.Handler {
 		if err := db.Create(&review).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
+
+		db.Create(&models.Notification{
+			UserID:  review.ProviderID,
+			Message: "You have received a new review!",
+			Read:    false,
+		})
+
 		return c.Status(fiber.StatusCreated).JSON(review)
 	}
 }

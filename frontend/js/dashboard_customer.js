@@ -429,7 +429,33 @@ async function fetchAndDisplayBookings() {
             fetchCustomerId()
         ]);
         if (!response.ok) throw new Error('Failed to fetch bookings');
-        const data = await response.json();
+        let data = await response.json();
+
+        const now = Date.now();
+        const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+        const oldBookings = data.filter(b => {
+            const bookingTime = new Date(b.booking_time).getTime();
+            return !isNaN(bookingTime) && (now - bookingTime > oneWeekMs);
+        });
+
+       
+        for (const b of oldBookings) {
+            try {
+                await fetch(`${API_BASE_URL}/booking/${b.id || b.ID}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) {
+                console.warn('Failed to auto-delete old booking:', b.id || b.ID, err);
+            }
+        }
+
+      
+        data = data.filter(b => {
+            const bookingTime = new Date(b.booking_time).getTime();
+            return isNaN(bookingTime) || (now - bookingTime <= oneWeekMs);
+        });
+
         bookingsList.innerHTML = '';
         if (Array.isArray(data) && data.length) {
             data.forEach(b => {

@@ -38,6 +38,7 @@ func main() {
 		&models.ChatRoom{},
 		&models.ChatMessage{},
 		&models.AdminRequest{},
+		&models.Notification{},
 	); err != nil {
 		log.Fatal("AutoMigrate failed: ", err)
 	}

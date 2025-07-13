@@ -77,6 +77,9 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 
 	app.Get("/messages/received", middleware.RequireAuth, controllers.GetUserMessages(db))
 
+	app.Get("/notifications", middleware.RequireAuth, controllers.GetNotifications(db))
+	app.Post("/notifications/mark-read", middleware.RequireAuth, controllers.MarkNotificationRead(db))
+
 	chat := app.Group("/chat")
 	chat.Post("/rooms", middleware.RequireAuth, chatController.GetOrCreateRoom)
 	chat.Get("/rooms", middleware.RequireAuth, chatController.GetUserRooms)

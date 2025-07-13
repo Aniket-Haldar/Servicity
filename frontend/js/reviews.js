@@ -18,7 +18,16 @@ function showModal(id) {
 
 function hideModal(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+           
+            modalContent.style.left = '';
+            modalContent.style.top = '';
+            modalContent.style.transform = '';
+        }
+        modal.style.display = 'none';
+    }
 }
 
 function renderStars(rating) {
@@ -63,11 +72,8 @@ async function fetchReviewForBooking(bookingId, customerId) {
         const res = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
-    
-
+        if (res.status === 404) return null;
         if (!res.ok) return null;
-
         let review = await res.json();
         if (Array.isArray(review)) review = review[0] || null;
         return normalizeReview(review);
@@ -77,7 +83,7 @@ async function fetchReviewForBooking(bookingId, customerId) {
     }
 }
 
-async function openReviewModal({bookingId, serviceId, customerId, providerId}) {
+async function openReviewModal({bookingId, serviceId, customerId, providerId, triggerEvent}) {
     if (!bookingId || !customerId || !serviceId) {
         alert('Missing required parameters for review modal');
         return;
@@ -96,9 +102,35 @@ async function openReviewModal({bookingId, serviceId, customerId, providerId}) {
     document.getElementById('review-customer-id').value = customerId;
     document.getElementById('review-provider-id').value = providerId;
 
-  
     document.getElementById('review-form').style.display = 'none';
     document.getElementById('existing-review').style.display = 'none';
+
+ 
+    const modalContent = document.querySelector('#review-modal .modal-content');
+    if (triggerEvent && modalContent) {
+        const {clientX, clientY} = triggerEvent;
+    
+        let left = clientX + 10;
+        let top = clientY + 16;
+
+       
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const modalWidth = modalContent.offsetWidth || 410;
+        const modalHeight = modalContent.offsetHeight || 320;
+        if (left + modalWidth > vw) left = vw - modalWidth - 12;
+        if (top + modalHeight > vh) top = vh - modalHeight - 12;
+
+        modalContent.style.left = left + "px";
+        modalContent.style.top = top + "px";
+        modalContent.style.transform = "none";
+    } else if (modalContent) {
+    
+        modalContent.style.left = "50%";
+        modalContent.style.top = "20vh";
+        modalContent.style.transform = "translate(-50%, 0)";
+    }
+   
 
     const review = await fetchReviewForBooking(bookingId, customerId);
 
@@ -107,7 +139,6 @@ async function openReviewModal({bookingId, serviceId, customerId, providerId}) {
         document.getElementById('existing-review-rating').innerHTML = renderStars(review.rating);
         document.getElementById('existing-review-text').textContent = review.comment;
         document.getElementById('existing-review').style.display = 'block';
-
 
         document.getElementById('edit-review-btn').onclick = function() {
             document.getElementById('review-modal-title').textContent = 'Edit Your Review';
@@ -119,7 +150,6 @@ async function openReviewModal({bookingId, serviceId, customerId, providerId}) {
             document.getElementById('existing-review').style.display = 'none';
         };
     } else {
-     
         document.getElementById('review-modal-title').textContent = 'Leave a Review';
         document.getElementById('review-rating').value = '';
         document.getElementById('review-text').value = '';
@@ -143,7 +173,6 @@ function setupReviewModal() {
     }
 }
 
-
 function addReviewButtonToBooking(booking, actionsContainer, customerId) {
     if (!booking || !actionsContainer || !customerId) return;
     if ((booking.status || '').toLowerCase() !== 'completed') return;
@@ -160,12 +189,14 @@ function addReviewButtonToBooking(booking, actionsContainer, customerId) {
     reviewBtn.setAttribute('data-booking-id', bookingId);
     actionsContainer.appendChild(reviewBtn);
 
-    reviewBtn.addEventListener('click', async () => {
+  
+    reviewBtn.addEventListener('click', async (e) => {
         await openReviewModal({
             bookingId,
             serviceId,
             customerId,
-            providerId
+            providerId,
+            triggerEvent: e 
         });
     });
 }
@@ -241,13 +272,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             data = await res.json();
-          
 
+            
             await openReviewModal({
                 bookingId,
                 serviceId,
                 customerId,
-                providerId
+                providerId,
+
             });
         } catch (err) {
             console.error('Review submission error:', err);

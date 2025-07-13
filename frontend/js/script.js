@@ -209,7 +209,7 @@ document.getElementById('dashboard-link')?.addEventListener('click', async funct
         return;
     }
     try {
-        const response = await fetch(`${API_BASE_URL}profile/details`, {
+        const response = await fetch(`${API_BASE_URL}/profile/details`, {
             headers: { 'Authorization': `bearer ${token}` }
         });
         if (!response.ok) throw new Error('Failed to fetch user profile');
@@ -314,11 +314,102 @@ async function updateAuthUI() {
     }
 }
 
+async function fetchNotifications() {
+    const token = localStorage.getItem('token') || getCookie('token');
+    if (!token) return [];
+    try {
+        const res = await fetch(`${API_BASE_URL}/notifications`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status !== 200) return [];
+        return await res.json();
+    } catch {
+        return [];
+    }
+}
+
+function renderNotifications(notifications) {
+    const dropdown = document.getElementById('notification-dropdown');
+    const countSpan = document.getElementById('notification-count');
+    const unread = notifications.filter(n => !n.read);
+
+    if (unread.length > 0) {
+        countSpan.style.display = '';
+        countSpan.textContent = unread.length;
+    } else {
+        countSpan.style.display = 'none';
+    }
+
+    if (notifications.length === 0) {
+        dropdown.innerHTML = `<div class="notification-empty">No notifications</div>`;
+        return;
+    }
+
+    dropdown.innerHTML = notifications.map(n => `
+        <div class="notification-item${n.read ? '' : ' unread'}" data-id="${n.ID || n.id}">
+            <div>${n.Message || n.message}</div>
+            <div style="font-size:12px;color:#888;">${(new Date(n.CreatedAt || n.created_at)).toLocaleString()}</div>
+        </div>
+    `).join('');
+}
+
+async function markNotificationRead(notificationId) {
+    const token = localStorage.getItem('token') || getCookie('token');
+    if (!token) return;
+    await fetch(`${API_BASE_URL}/notifications/mark-read`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: Number(notificationId) })
+    });
+}
+
+async function setupNotificationSystem() {
+    const bell = document.getElementById('notification-bell');
+    const dropdown = document.getElementById('notification-dropdown');
+    const token = localStorage.getItem('token') || getCookie('token');
+    if (token) {
+        bell.style.display = 'inline-block';
+        // Poll and show notifications
+        async function poll() {
+            const notifications = await fetchNotifications();
+            renderNotifications(notifications);
+        }
+        poll();
+        setInterval(poll, 20000);
+
+        // Dropdown toggle
+        bell.onclick = function(e) {
+            e.stopPropagation();
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        };
+
+        // Mark as read on click
+        dropdown.onclick = async function(e) {
+            const item = e.target.closest('.notification-item');
+            if (item && item.dataset.id) {
+                await markNotificationRead(item.dataset.id);
+                item.classList.remove('unread');
+            }
+        };
+
+        // Hide dropdown on click outside
+        document.addEventListener('click', function(e) {
+            if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    } else {
+        bell.style.display = 'none';
+    }
+}
 document.addEventListener('DOMContentLoaded', async () => {
     fetchAndDisplayServices();
     await updateAuthUI();
     await checkAuthStatus();
-
+    await setupNotificationSystem();
    
     document.getElementById('profile-icon')?.addEventListener('click', function(e) {
         e.preventDefault();

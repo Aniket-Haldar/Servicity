@@ -713,3 +713,30 @@ a {
     height: 20px;
     object-fit: contain;
 }
+/* Add this to your CSS file for notification styles */
+#notification-bell { position: relative; }
+#notification-count { display:none; }
+#notification-dropdown {
+  max-height: 350px;
+  overflow-y: auto;
+  border-radius: 8px;
+  padding: 8px 0;
+  box-shadow: 0 2px 18px #bbb;
+  position: absolute;
+  left: 0; /* Aligns dropdown to bell's left edge */
+  top: 36px; /* Directly below the bell */
+  background: white;
+  min-width: 270px;
+  z-index: 1000;
+  transition: opacity 0.2s;
+  opacity: 1;
+  display: none;
+}
+.notification-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+.notification-item:last-child { border-bottom: none; }
+.notification-item.unread { background: #f5f7fa; font-weight: 500; }
+.notification-empty { padding: 16px; text-align: center; color: #888; }

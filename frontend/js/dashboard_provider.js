@@ -837,7 +837,7 @@ async function getCurrentUser() {
                         method: 'PUT',
                         headers: {
                             'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/jsorendern'
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ status, Status: status })
                     });

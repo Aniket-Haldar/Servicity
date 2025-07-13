@@ -31,6 +31,13 @@ func CreateBooking(db *gorm.DB) fiber.Handler {
 		if err := db.Create(&booking).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
+
+		// Provider notification: someone placed an order
+		db.Create(&models.Notification{
+			UserID:  booking.ProviderID,
+			Message: "You have a new booking order!",
+		})
+
 		return c.JSON(booking)
 	}
 }
@@ -101,9 +108,29 @@ func UpdateBooking(db *gorm.DB) fiber.Handler {
 		if err := c.BodyParser(&updateData); err != nil {
 			return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 		}
+
+		// Save previous status to detect change
+		prevStatus := booking.Status
+
 		if err := db.Model(&booking).Updates(updateData).Error; err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": "Failed to update booking"})
 		}
+
+		// Customer notification: booking accepted or rejected
+		if updateData.Status != "" && updateData.Status != prevStatus {
+			if updateData.Status == "accepted" {
+				db.Create(&models.Notification{
+					UserID:  booking.CustomerID,
+					Message: "Your booking has been accepted!",
+				})
+			} else if updateData.Status == "rejected" {
+				db.Create(&models.Notification{
+					UserID:  booking.CustomerID,
+					Message: "Your booking has been rejected.",
+				})
+			}
+		}
+
 		return c.JSON(booking)
 	}
 }
