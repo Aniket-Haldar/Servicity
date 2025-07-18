@@ -1,4 +1,4 @@
-const APII_BASE_URL = 'http://localhost:3000';
+const APII_BASE_URL = 'http://127.0.0.1:3000';
 
 function getToken() {
     return localStorage.getItem('token') || getCookie('token');

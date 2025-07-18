@@ -81,7 +81,7 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		Value:    jwtToken,
 		HTTPOnly: false,
 		Secure:   false,
-		SameSite: "Lax",
+		SameSite: "None",
 		Path:     "/",
 		MaxAge:   86400,
 	})
@@ -100,8 +100,8 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 			}
 			redirectPath = state
 		}
-		return c.Redirect("http://localhost:5500" + redirectPath)
+		return c.Redirect("http://127.0.0.1:3000" + redirectPath)
 	}
 
-	return c.Redirect("http://localhost:5500/frontend/html/index.html")
+	return c.Redirect("http://127.0.0.1:3000/frontend/html/index.html")
 }

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Servicity | Discover Services</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/services.css">
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+    <link rel="stylesheet" href="/frontend/css/services.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -14,7 +14,7 @@
 <nav class="navbar">
     <div class="container">
         <a href="index.html" class="logo">
-            <img src="../images/logo.png" alt="Servicity">
+            <img src="/frontend/images/logo.png" alt="Servicity">
         </a>
         <div class="nav-links">
             <a href="index.html" class="nav-link">Home</a>
@@ -24,12 +24,12 @@
             <a href="#" id="dashboard-link" class="nav-link">Dashboard</a>
             <div class="profile-dropdown">
                 <a href="#" id="profile-icon">
-                    <img src="../images/profile.svg" alt="Profile" class="profile-icon">
+                    <img src="/frontend/images/profile.svg" alt="Profile" class="profile-icon">
                     <span class="user-name" style="margin-left: 8px; font-weight: 500;"></span>
                 </a>
                 <div id="auth-dropdown" class="dropdown-menu">
                     <button id="google-login" class="oauth-btn">
-                        <img src="../images/google-login.svg" alt="Google" class="oauth-icon">
+                        <img src="/frontend/images/google-login.svg" alt="Google" class="oauth-icon">
                         <span>Continue with Google</span>
                     </button>
                     <div id="user-info" style="display: none;">
@@ -54,7 +54,7 @@
         <div class="search-filter" style="display: flex; gap: 1rem; justify-content: center;">
             <div class="search-box" style="flex:2; min-width:220px; position:relative;">
                 <i class="fas fa-search" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#828282;"></i>
-                <input type="text" id="searchInput" placeholder="Find services..." style="width:100%;padding:0.7rem 1.5rem 0.7rem 42px;border-radius:8px;border:1px solid #eee;">
+                <input type="text" id="searchInput" placeholder="Find services/frontend." style="width:100%;padding:0.7rem 1.5rem 0.7rem 42px;border-radius:8px;border:1px solid #eee;">
             </div>
             <select id="categoryFilter" style="min-width:170px; padding:0.7rem 1rem; border-radius:8px;">
                 <option value="all">All Categories</option>
@@ -87,7 +87,7 @@
 
 <div id="loading-spinner">
     <div class="spinner"></div>
-    <p>Loading services...</p>
+    <p>Loading services/frontend.</p>
 </div>
 
 
@@ -98,7 +98,7 @@
     </div>
 </div>
 
-<script src="../js/services.js"></script>
+<script src="/frontend/js/services.js"></script>
 
 </body>
 </html>

@@ -1,5 +1,5 @@
-const API_BASE = "http://localhost:3000/admin";
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE = "http://127.0.0.1:3000/admin";
+const API_BASE_URL = "http://127.0.0.1:3000";
 let currentProviderRequestId = null;
 
 function getCookie(name) {

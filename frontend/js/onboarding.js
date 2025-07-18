@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://127.0.0.1:3000';
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -44,6 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if user is logged in
     const token = getCookie('token');
     if (!token) {
-        window.location.href = 'http://localhost:3000/auth/google/login';
+        window.location.href = 'http://127.0.0.1:3000/auth/google/login';
     }
 });
