@@ -15,7 +15,6 @@ import (
 
 func GoogleLogin(c *fiber.Ctx) error {
 	next := c.Query("next", "")
-
 	url := config.GoogleOAuthConfig.AuthCodeURL(next, oauth2.AccessTypeOffline)
 	return c.Redirect(url)
 }
@@ -30,7 +29,6 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 
 	token, err := config.GoogleOAuthConfig.Exchange(context.Background(), code)
 	if err != nil {
-
 		return c.Status(fiber.StatusInternalServerError).SendString("Token exchange failed: " + err.Error())
 	}
 
@@ -76,12 +74,13 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate JWT: " + err.Error())
 	}
 
+	// Ensure cookie is set on every redirect
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    jwtToken,
-		HTTPOnly: false,
-		Secure:   false,
-		SameSite: "None",
+		HTTPOnly: true,  // set to true for security!
+		Secure:   false, // false for localhost HTTP!
+		SameSite: "Lax", // Lax for local
 		Path:     "/",
 		MaxAge:   86400,
 	})
@@ -90,18 +89,18 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		(user.Role == "customer" && (user.Name == "" || user.CustomerProfile.Phone == "")) ||
 		(user.Role == "provider" && (user.Name == "" || user.ProviderProfile.Pincode == ""))
 
+	var redirectPath string
 	if needsOnboarding {
-
-		redirectPath := "/frontend/html/onboarding.html"
+		redirectPath = "/frontend/html/onboarding.html"
 		if state != "" {
-
 			if state[0] != '/' {
 				state = "/" + state
 			}
 			redirectPath = state
 		}
-		return c.Redirect("http://127.0.0.1:3000" + redirectPath)
+	} else {
+		redirectPath = "/frontend/html/index.html"
 	}
 
-	return c.Redirect("http://127.0.0.1:3000/frontend/html/index.html")
+	return c.Redirect("http://127.0.0.1:3000" + redirectPath)
 }
