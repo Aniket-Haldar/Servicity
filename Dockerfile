@@ -1,24 +1,36 @@
-FROM golang:1.24-alpine AS builder
+# Build stage
+FROM golang:1.24.3-alpine AS builder
+
 WORKDIR /app
 
-RUN apk add --no-cache git
+# Install git & certs
+RUN apk --no-cache add git ca-certificates
 
+# Copy go.mod and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy source code
 COPY . .
 
-RUN go build -o server ./cmd/main.go
+# Build binary
+RUN go build -o server .
 
-FROM alpine:3.19
+# Final stage
+# Final image
+FROM alpine:latest
+
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates
+# Install certs & mime types for correct Content-Type headers
+RUN apk --no-cache add ca-certificates 
 
-COPY --from=builder /app/server /app/server
+# Copy built server binary and frontend
+COPY --from=builder /app/server .
+COPY frontend ./frontend
 
-COPY frontend /app/frontend
+# Expose port (Render uses $PORT env)
+EXPOSE 8080
 
-EXPOSE 3000
-
-CMD ["/app/server"]
+# Run the server
+CMD ["./server"]
