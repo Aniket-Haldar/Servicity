@@ -102,5 +102,5 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		redirectPath = "/frontend/html/index.html"
 	}
 
-	return c.Redirect("http://127.0.0.1:3000" + redirectPath)
+	return c.Redirect("https://servicity.onrender.com" + redirectPath)
 }
