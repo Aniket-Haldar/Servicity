@@ -1,36 +1,26 @@
-# Build stage
+# --- Stage 1: Build the Go binary ---
 FROM golang:1.24.3-alpine AS builder
 
 WORKDIR /app
 
-# Install git & certs
 RUN apk --no-cache add git ca-certificates
 
-# Copy go.mod and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build binary
-RUN go build -o server .
+WORKDIR /app/cmd
+RUN go build -o /app/server .
 
-# Final stage
-# Final image
+# --- Stage 2: Runtime image ---
 FROM alpine:latest
 
 WORKDIR /app
+RUN apk --no-cache add ca-certificates
 
-# Install certs & mime types for correct Content-Type headers
-RUN apk --no-cache add ca-certificates 
-
-# Copy built server binary and frontend
 COPY --from=builder /app/server .
 COPY frontend ./frontend
 
-# Expose port (Render uses $PORT env)
-EXPOSE 8080
-
-# Run the server
+EXPOSE 3000
 CMD ["./server"]

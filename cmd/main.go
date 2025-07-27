@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/Aniket-Haldar/Servicity/config"
 	"github.com/Aniket-Haldar/Servicity/middleware"
@@ -10,14 +11,16 @@ import (
 	"github.com/Aniket-Haldar/Servicity/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	// Remove godotenv — Render injects env vars directly.
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Println("Warning: PORT not set, defaulting to 3000")
+		port = "3000"
 	}
+
 	config.SetupOAuthConfig()
 	// Connect to DB
 	db, err := config.DBConnect()
