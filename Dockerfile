@@ -13,7 +13,7 @@ COPY . .
 WORKDIR /app/cmd
 RUN go build -o /app/server .
 
-# --- Stage 2: Runtime image ---
+
 FROM alpine:latest
 
 WORKDIR /app

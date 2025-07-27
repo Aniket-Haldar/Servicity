@@ -54,6 +54,7 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Email not found in user info")
 	}
 
+	// Check if user exists
 	user := models.User{}
 	result := db.Preload("CustomerProfile").Preload("ProviderProfile").First(&user, "email = ?", email)
 
@@ -69,18 +70,18 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		}
 	}
 
+	// Generate JWT
 	jwtToken, err := utils.GenerateJWT(email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate JWT: " + err.Error())
 	}
 
-	// Ensure cookie is set on every redirect
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    jwtToken,
-		HTTPOnly: true,  // set to true for security!
-		Secure:   false, // false for localhost HTTP!
-		SameSite: "Lax", // Lax for local
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Lax",
 		Path:     "/",
 		MaxAge:   86400,
 	})
@@ -92,14 +93,15 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 	var redirectPath string
 	if needsOnboarding {
 		redirectPath = "/frontend/html/onboarding.html"
-		if state != "" {
-			if state[0] != '/' {
-				state = "/" + state
-			}
-			redirectPath = state
-		}
 	} else {
 		redirectPath = "/frontend/html/index.html"
+	}
+
+	if state != "" {
+		if state[0] != '/' {
+			state = "/" + state
+		}
+		redirectPath = state
 	}
 
 	return c.Redirect("https://servicity.onrender.com" + redirectPath)
