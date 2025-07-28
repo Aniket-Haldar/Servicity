@@ -84,6 +84,7 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		SameSite: "Lax",
 		Path:     "/",
 		MaxAge:   86400,
+		Domain:   ".onrender.com",
 	})
 
 	needsOnboarding := user.Role == "" ||
