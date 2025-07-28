@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	// Remove godotenv — Render injects env vars directly.
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Println("Warning: PORT not set, defaulting to 3000")

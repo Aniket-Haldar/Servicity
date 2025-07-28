@@ -4,7 +4,7 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-const API_BASE_URL = 'http://127.0.0.1:3000';
+const API_BASE_URL = 'https://servicity.onrender.com';
 let isAdmin = false; 
 
 const servicesContainer = document.getElementById('services-container');
