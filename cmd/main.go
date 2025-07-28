@@ -50,7 +50,7 @@ func main() {
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://127.0.0.1:5500, http://localhost:3000, http://localhost:5500,http://127.0.0.1:300 ",
+		AllowOrigins:     "http://127.0.0.1:5500, http://localhost:3000, http://localhost:5500,http://127.0.0.1:300,https://servicity.onrender.com ",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
