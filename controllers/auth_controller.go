@@ -81,10 +81,10 @@ func GoogleCallback(db *gorm.DB, c *fiber.Ctx) error {
 		Value:    jwtToken,
 		HTTPOnly: true,
 		Secure:   true,
-		SameSite: "Lax",
+		SameSite: "None",
 		Path:     "/",
 		MaxAge:   86400,
-		Domain:   ".onrender.com",
+		Domain:   "servicity.onrender.com",
 	})
 
 	needsOnboarding := user.Role == "" ||
