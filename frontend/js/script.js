@@ -461,7 +461,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('logout-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('token');
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'token=; path=/; domain=servicity.onrender.com; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=None;';
+
         document.getElementById('dashboard-link').style.display = 'none';
         window.location.reload();
     });

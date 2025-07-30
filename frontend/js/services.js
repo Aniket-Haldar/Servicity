@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     logoutBtn?.addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('token');
-        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+         document.cookie = 'token=; path=/; domain=servicity.onrender.com; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; SameSite=None;';
         window.location.href = "index.html";
     });
 
