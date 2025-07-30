@@ -92,4 +92,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         statusDiv.innerText = msg;
         statusDiv.style.color = isError ? "#c00" : "#080";
     }
+       const token = getCookie('token');
+    if (!token) {
+        window.location.href = 'https://servicity.onrender.com/auth/google/login';
+    }
 });
