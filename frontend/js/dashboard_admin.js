@@ -155,6 +155,7 @@ function renderProviderRequests(status) {
                 return;
             }
             requests.forEach(req => {
+                console.log(req);
                 const reqDiv = document.createElement('div');
                 reqDiv.className = 'provider-request-item';
                 reqDiv.innerHTML = `
