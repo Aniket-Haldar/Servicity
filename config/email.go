@@ -35,7 +35,7 @@ func LoadEmailConfig() EmailConfig {
 		emailConfig.AppName = "Servicity"
 	}
 	if emailConfig.AppURL == "" {
-		emailConfig.AppURL = "http://localhost:5500"
+		emailConfig.AppURL = "https://servicity.onrender.com"
 	}
 
 	return emailConfig
