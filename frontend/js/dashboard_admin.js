@@ -175,8 +175,8 @@ function renderProviderRequests(status) {
                     ${
                         req.status === "Pending"
                         ? `<div class="request-actions">
-                            <button class="btn-approve" onclick="approveAdminRequest(${req.ID})">✓ Approve</button>
-                            <button class="btn-reject" onclick="rejectAdminRequest(${req.ID})">✗ Reject</button>
+                            <button class="btn-approve" onclick="approveAdminRequest(${req.userID})">✓ Approve</button>
+                            <button class="btn-reject" onclick="rejectAdminRequest(${req.userID})">✗ Reject</button>
                         </div>`
                         : ""
                     }
@@ -409,7 +409,6 @@ function renderAdminRequests() {
                 return;
             }
             requests.forEach(req => {
-                console.log(req);
                 const reqDiv = document.createElement('div');
                 reqDiv.className = 'provider-request-item';
                 reqDiv.innerHTML = `
@@ -428,8 +427,8 @@ function renderAdminRequests() {
                         </div>
                     </div>
                     <div class="request-actions">
-                        <button class="btn-approve" onclick="approveAdminRequest(${req.ID})">✓ Approve</button>
-                        <button class="btn-reject" onclick="rejectAdminRequest(${req.ID})">✗ Reject</button>
+                        <button class="btn-approve" onclick="approveAdminRequest(${req.user_id})">✓ Approve</button>
+                        <button class="btn-reject" onclick="rejectAdminRequest(${req.user_id})">✗ Reject</button>
                     </div>
                 `;
                 list.appendChild(reqDiv);
