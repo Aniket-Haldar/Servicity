@@ -154,8 +154,7 @@ function renderProviderRequests(status) {
                 list.innerHTML = '<div class="empty-message">No provider requests found.</div>';
                 return;
             }
-            requests.forEach(req => {
-                console.log(req);
+            requests.forEach(req => {   
                 const reqDiv = document.createElement('div');
                 reqDiv.className = 'provider-request-item';
                 reqDiv.innerHTML = `
@@ -175,8 +174,8 @@ function renderProviderRequests(status) {
                     ${
                         req.status === "Pending"
                         ? `<div class="request-actions">
-                            <button class="btn-approve" onclick="approveAdminRequest(${req.userID})">✓ Approve</button>
-                            <button class="btn-reject" onclick="rejectAdminRequest(${req.userID})">✗ Reject</button>
+                            <button class="btn-approve" onclick="approveAdminRequest(${req.user_id})">✓ Approve</button>
+                            <button class="btn-reject" onclick="rejectAdminRequest(${req.user_id})">✗ Reject</button>
                         </div>`
                         : ""
                     }
