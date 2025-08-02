@@ -145,7 +145,9 @@ async function showAdminRequestsTabIfSuperAdmin() {
 function renderProviderRequests(status) {
     const list = document.getElementById('provider-requests-list');
     list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Loading provider requests...</div>';
+    
     const url = `${API_BASE}/provider-requests${status ? `?status=${status}` : ''}`;
+    
     fetch(url, { headers: getAuthHeader() })
         .then(res => res.json())
         .then(requests => {
@@ -154,33 +156,56 @@ function renderProviderRequests(status) {
                 list.innerHTML = '<div class="empty-message">No provider requests found.</div>';
                 return;
             }
-            requests.forEach(req => {   
-                const reqDiv = document.createElement('div');
-                reqDiv.className = 'provider-request-item';
-                reqDiv.innerHTML = `
+            
+            requests.forEach(request => {
+                const requestDiv = document.createElement('div');
+                requestDiv.className = 'provider-request-item';
+                requestDiv.innerHTML = `
                     <div class="request-header">
                         <div class="provider-info">
-                            <h4>${req.user_name} (${req.user_email})</h4>
-                        
+                            <h4>${request.user_name || 'N/A'}</h4>
+                            <p>${request.user_email || 'N/A'}</p>
                         </div>
-                        <span class="status-badge ${req.status.toLowerCase()}">${req.status}</span>
+                        <span class="status-badge ${request.status.toLowerCase()}">${request.status}</span>
                     </div>
                     <div class="request-details">
                         <div class="detail-item">
-                            <strong>Requested On</strong>
-                            <span>${new Date(req.created_at).toLocaleDateString()}</span>
+                            <strong>Profession</strong>
+                            <span>${request.profession || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Location</strong>
+                            <span>${request.pincode || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Pricing</strong>
+                            <span>${request.pricing ? `₹${request.pricing}` : 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Available Timings</strong>
+                            <span>${request.available_timings || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Applied Date</strong>
+                            <span>${new Date(request.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Account Status</strong>
+                            <span>${request.user_blocked ? 'Blocked' : 'Active'}</span>
                         </div>
                     </div>
-                    ${
-                        req.status === "Pending"
-                        ? `<div class="request-actions">
-                            <button class="btn-approve" onclick="approveAdminRequest(${req.user_id})">✓ Approve</button>
-                            <button class="btn-reject" onclick="rejectAdminRequest(${req.user_id})">✗ Reject</button>
-                        </div>`
-                        : ""
-                    }
+                    ${request.status === 'Pending' ? `
+                        <div class="request-actions">
+                            <button class="btn-approve" onclick="openProviderModal(${request.id}, 'Approved')">
+                                ✓ Approve
+                            </button>
+                            <button class="btn-reject" onclick="openProviderModal(${request.id}, 'Rejected')">
+                                ✗ Reject
+                            </button>
+                        </div>
+                    ` : ''}
                 `;
-                list.appendChild(reqDiv);
+                list.appendChild(requestDiv);
             });
         })
         .catch(() => {
