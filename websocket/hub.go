@@ -116,7 +116,7 @@ func (h *Hub) HandleWebSocket(c *websocket.Conn) {
 		conn:   c,
 		send:   make(chan []byte, 256),
 		userID: uint(userID),
-		roomID: roomID,
+		roomID: roomID, // Serve frontend files
 	}
 
 	client.hub.register <- client
